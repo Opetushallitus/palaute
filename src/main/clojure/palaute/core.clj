@@ -8,6 +8,7 @@
             [ring.util.response :refer [response]]
             [ring.util.request :refer [body-string]]
             [clojure.edn :as edn]
+            [environ.core :refer [env]]
             [ring.util.http-response :refer [ok created]]
             [camel-snake-kebab.core :refer [->snake_case ->kebab-case-keyword ->camelCase]]
             [camel-snake-kebab.extras :refer [transform-keys]]
@@ -34,11 +35,11 @@
 
 (defn feedback->row [feedback]
   (let [joda->timestamp (fn [a]
-            (assoc (vec a) 0 (.getMillis (first a))))]
-  (-> feedback
-      (select-keys [:created_time :stars :user_agent :feedback])
-      vals
-      joda->timestamp)))
+                          (assoc (vec a) 0 (.getMillis (first a))))]
+    (-> feedback
+        (select-keys [:created_time :stars :user_agent :feedback])
+        vals
+        joda->timestamp)))
 
 (defroutes app
   (context "/api" []
@@ -63,7 +64,8 @@
   []
   (let [config (edn/read-string (slurp "config.edn"))
         db     (:db config)
-        port   (:port config)]
+        port   (or (:port config)
+                   (Integer/parseInt (get env :palaute-http-port "8080")))]
     (palaute.db/set-datasource db)
     (migrate db)
     (run-jetty (wrap-reload #'handler) {:port port})))

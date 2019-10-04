@@ -1,0 +1,7 @@
+{:db   {:database-name "{{palaute_db_name}}"
+        :pool-name     "palaute-pool"
+        :username      "{{postgres_app_user}}"
+        :password      "{{palaute_db_app_password}}"
+        :server-name   "{{palaute_db_host}}"
+        :port-number   {{palaute_db_port}}
+        :currentSchema "public"}}
