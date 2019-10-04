@@ -1,0 +1,8 @@
+{:db   {:database-name "postgres"
+        :pool-name     "palaute-pool"
+        :username      "oph"
+        :password      "oph"
+        :server-name   "localhost"
+        :port-number   5436
+        :currentSchema "public"}
+ :port 9000}
