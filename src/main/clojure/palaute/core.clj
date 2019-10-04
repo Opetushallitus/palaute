@@ -62,7 +62,7 @@
 
 (defn -main
   []
-  (let [config (edn/read-string (slurp "config.edn"))
+  (let [config (edn/read-string (slurp "config/config.edn"))
         db     (:db config)
         port   (or (:port config)
                    (Integer/parseInt (get env :palaute-http-port "8080")))]
