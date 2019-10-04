@@ -42,18 +42,21 @@
         joda->timestamp)))
 
 (defroutes app
-  (context "/api" []
-           (GET "/palaute/:key" [key]
-                (let [feedbacks (palaute.db/exec yesql-get-feedback {:key key})]
-                  (ok
-                   (map feedback->row feedbacks))))
-           (POST "/palaute" request
-                 (let [feedback (->> (FeedbackEnforcer (:body request))
-                                     (transform-keys ->snake_case))]
-                   (palaute.db/exec yesql-insert-feedback<! feedback)
-                   (created))))
-  (GET "/" [] index)
-  (resources "/" {:root "static"}))
+  (context "/palaute" []
+           (GET "/health_check" []
+                (ok))
+           (context "/api" []
+                    (GET "/palaute/:key" [key]
+                         (let [feedbacks (palaute.db/exec yesql-get-feedback {:key key})]
+                           (ok
+                            (map feedback->row feedbacks))))
+                    (POST "/palaute" request
+                          (let [feedback (->> (FeedbackEnforcer (:body request))
+                                              (transform-keys ->snake_case))]
+                            (palaute.db/exec yesql-insert-feedback<! feedback)
+                            (created))))
+           (GET "/" [] index)
+           (resources "/" {:root "static"})))
 
 (def handler
   (-> (site app)
