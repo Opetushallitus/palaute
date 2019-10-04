@@ -14,7 +14,7 @@ const Results = (props) => {
         const runEffect = async () => {
             try {
                 const data = await fetch(
-                    "palaute/api/palaute/" + query,
+                    "api/palaute/" + query,
                     {signal: controller.signal}
                 ).then(r => r.json());
                 setData(data);
