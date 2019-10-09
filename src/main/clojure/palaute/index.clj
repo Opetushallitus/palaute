@@ -10,4 +10,4 @@
      [:title "Palaute"]]
     [:body
      [:div#app]
-     [:script {:src "index.js"}]]]))
+     [:script {:src "/palaute/index.js"}]]]))
