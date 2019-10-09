@@ -6,6 +6,7 @@
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.json :refer [wrap-json-response wrap-json-body]]
             [ring.util.response :refer [response]]
+            [taoensso.timbre :refer [info warn error]]
             [ring.util.request :refer [body-string]]
             [clojure.edn :as edn]
             [environ.core :refer [env]]
@@ -46,8 +47,9 @@
            (GET "/health_check" []
                 (ok))
            (context "/api" []
-                    (GET "/palaute/:key" [key]
-                         (let [feedbacks (palaute.db/exec yesql-get-feedback {:key key})]
+                    (GET "/palaute" request
+                         (let [key       (-> request :params :q)
+                               feedbacks (palaute.db/exec yesql-get-feedback {:key key})]
                            (ok
                             (map feedback->row feedbacks))))
                     (POST "/palaute" request
