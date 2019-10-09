@@ -29,7 +29,7 @@ docker run --rm --name palaute-test-db -e POSTGRES_USER=oph -e POSTGRES_PASSWORD
 
 Start watching frontend changes with `npm run start` 
 
-Start backend with `mvn clojure:compile clojure:run`
+Start backend with `mvn clojure:compile clojure:run` (You have to run `mvn package` before this)
 
 Open in browser (http://localhost:9000)
 
