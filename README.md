@@ -16,7 +16,14 @@ Start PostgreSQL in Docker
 ```
 docker pull postgres
 
-docker run --rm --name palaute-test-db -e POSTGRES_PASSWORD=oph -d -p 5436:5432 -v $HOME/docker/volumes/postgres:/var/lib/postgresql/data  postgres
+docker run --rm --name palaute-test-db -e POSTGRES_USER=oph -e POSTGRES_PASSWORD=oph -d -p 5436:5432 -v $HOME/docker/volumes/postgres:/var/lib/postgresql/data  postgres
+
+``` 
+or
+```
+docker pull postgres
+
+docker run --rm --name palaute-test-db -e POSTGRES_USER=oph -e POSTGRES_PASSWORD=oph -d -p 5436:5432 postgres
 
 ``` 
 
