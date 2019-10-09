@@ -12,6 +12,8 @@ Run
 
 ## Developping
 
+Set preferred logging level: `export TIMBRE_LEVEL=info` or `set -x mvn TIMBRE_LEVEL info`
+
 Start PostgreSQL in Docker 
 ```
 docker pull postgres
