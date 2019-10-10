@@ -60,18 +60,18 @@ const Results = (props) => {
                         <Label ribbon>Keskiarvo {average(data)}</Label>
                         Arvosana
                     </Table.HeaderCell>
+                    <Table.HeaderCell width={10}>Palaute</Table.HeaderCell>
                     <Table.HeaderCell>Aikaleima</Table.HeaderCell>
                     <Table.HeaderCell width={4}>Käyttäjäagentti</Table.HeaderCell>
-                    <Table.HeaderCell width={10}>Palaute</Table.HeaderCell>
                 </Table.Row>
             </Table.Header>
             <Table.Body>
                 {(data || []).map((row, index) => {
                     return <Table.Row key={index}>
                         <Table.Cell collapsing><Rating defaultRating={row[1]} maxRating={5} disabled/></Table.Cell>
+                        <Table.Cell singleline>{row[3]}</Table.Cell>
                         <Table.Cell collapsing>{moment(row[0]).format('LLL')}</Table.Cell>
                         <Table.Cell>{row[2]}</Table.Cell>
-                        <Table.Cell singleline>{row[3]}</Table.Cell>
                     </Table.Row>;
                 })}
             </Table.Body>
