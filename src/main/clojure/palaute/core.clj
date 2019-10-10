@@ -14,6 +14,7 @@
             [camel-snake-kebab.core :refer [->snake_case ->kebab-case-keyword ->camelCase]]
             [camel-snake-kebab.extras :refer [transform-keys]]
             [palaute.index :refer [index]]
+            [compojure.api.sweet :as api]
             [schema.core :as s]
             [schema.coerce :as c]
             [palaute.flyway :refer [migrate]]
@@ -32,8 +33,6 @@
    :user-agent s/Str
    :data       (s/maybe s/Any)})
 
-(def FeedbackEnforcer (c/coercer! Feedback c/json-coercion-matcher))
-
 (defn feedback->row [feedback]
   (let [joda->timestamp (fn [a]
                           (assoc (vec a) 0 (.getMillis (first a))))]
@@ -42,28 +41,37 @@
         vals
         joda->timestamp)))
 
-(defroutes app
-  (context "/palaute" []
-           (GET "/health_check" []
-                (ok))
-           (context "/api" []
-                    (GET "/palaute" request
-                         (let [key       (-> request :params :q)
-                               feedbacks (palaute.db/exec yesql-get-feedback {:key key})]
-                           (ok
-                            (map feedback->row feedbacks))))
-                    (POST "/palaute" request
-                          (let [feedback (->> (FeedbackEnforcer (:body request))
-                                              (transform-keys ->snake_case))]
-                            (palaute.db/exec yesql-insert-feedback<! feedback)
-                            (created))))
-           (GET "/" [] index)
-           (resources "/" {:root "static"})))
+(api/defroutes app-routes
+  (api/context
+   "/palaute" []
+   (api/GET "/health_check" [] (ok))
+   (api/context
+    "/api" []
+    (api/GET
+     "/keskiarvo" []
+     :query-params [{q :- s/Str nil}]
+     (ok
+      (first (palaute.db/exec yesql-get-average {:key q}))))
+    (api/GET
+     "/palaute" []
+     :query-params [{q :- s/Str nil}]
+     (ok
+      (doall
+       (map feedback->row
+            (palaute.db/exec yesql-get-feedback {:key q})))))
+    (api/POST
+     "/palaute" []
+     :body [feedback Feedback]
+     (palaute.db/exec yesql-insert-feedback<!
+                      (->> feedback
+                           (transform-keys ->snake_case)))
+     (created)))
+   (api/GET "/" [] index)
+   (resources "/" {:root "static"})))
 
 (def handler
-  (-> (site app)
-      (wrap-json-response)
-      (wrap-json-body {:keywords? true})))
+  (api/api
+   app-routes))
 
 (defn -main
   []

@@ -16,3 +16,6 @@ INSERT INTO feedback (
 
 -- name: yesql-get-feedback
 SELECT * FROM feedback WHERE key = :key;
+
+-- name: yesql-get-average
+SELECT avg(stars) as keskiarvo, count(stars) as lukumaara FROM feedback WHERE key = :key;
