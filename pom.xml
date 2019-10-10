@@ -155,13 +155,6 @@
                 <configuration>
                     <mainClass>palaute.core</mainClass>
                 </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.taoensso</groupId>
-                        <artifactId>timbre</artifactId>
-                        <version>4.10.0</version>
-                    </dependency>
-                </dependencies>
             </plugin>
             <plugin>
                 <groupId>com.github.eirslett</groupId>
