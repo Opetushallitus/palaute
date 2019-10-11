@@ -15,5 +15,6 @@ SET data = :data
 WHERE key = :key;
 
 -- name: yesql-delete-session-query!
+-- Deletes session
 DELETE FROM sessions
 WHERE key = :key;
