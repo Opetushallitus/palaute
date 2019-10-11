@@ -1,8 +1,15 @@
-{:db   {:database-name "postgres"
-        :pool-name     "palaute-pool"
-        :username      "oph"
-        :password      "oph"
-        :server-name   "localhost"
-        :port-number   5436
-        :currentSchema "public"}
- :port 9000}
+{:db            {:database-name "postgres"
+                 :pool-name     "palaute-pool"
+                 :username      "oph"
+                 :password      "oph"
+                 :server-name   "localhost"
+                 :port-number   5436
+                 :currentSchema "public"}
+ :cas           {}
+ :urls          {:virkailija-host "virkailija.untuvaopintopolku.fi"
+                 :hakija-host     "oppija.untuvaopintopolku.fi"
+                 :url-palaute     "http://localhost:9000/palaute"}
+ :dev           true
+ :log           {:base-path "/tmp"}
+ :public-config {:service_url "http://localhost:9000/palaute/"}
+ :port          9000}

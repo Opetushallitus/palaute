@@ -7,6 +7,7 @@
     {:lang "fi"}
     [:head
      [:meta {:charset "UTF-8"}]
+     [:link {:rel "shortcut icon" :href "/palaute/favicon.ico"}]
      [:title "Palaute"]]
     [:body
      [:div#app]

@@ -1,26 +1,36 @@
 (ns palaute.core
   (:require [ring.adapter.jetty :refer [run-jetty]]
-            [compojure.core :refer [GET POST defroutes context]]
+            [compojure.core :refer [GET POST defroutes routes context]]
             [compojure.handler :refer [site]]
             [compojure.route :refer [resources files not-found]]
+            [compojure.api.sweet :as api]
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.json :refer [wrap-json-response wrap-json-body]]
             [ring.util.response :refer [response]]
-            [taoensso.timbre :refer [info warn error]]
+            [taoensso.timbre :as log]
             [ring.util.request :refer [body-string]]
-            [clojure.edn :as edn]
-            [environ.core :refer [env]]
+            [palaute.authentication.cas-client :refer [new-cas-client]]
+            [palaute.db :refer [exec]]
+            [palaute.timbre-config :refer [configure-logging!]]
             [ring.util.http-response :refer [ok created]]
             [camel-snake-kebab.core :refer [->snake_case ->kebab-case-keyword ->camelCase]]
             [camel-snake-kebab.extras :refer [transform-keys]]
             [palaute.index :refer [index]]
-            [compojure.api.sweet :as api]
             [schema.core :as s]
+            [clojure.string :as string]
+            [ring.middleware.session :as ring-session]
             [schema.coerce :as c]
+            [environ.core :refer [env]]
+            [palaute.authentication.session-store :refer [create-store]]
+            [palaute.config :refer [config]]
             [palaute.flyway :refer [migrate]]
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.middleware.content-type :refer [wrap-content-type]]
             [yesql.core :as sql]
+            [palaute.authentication.auth
+             :refer
+             [cas-login login cas-initiated-logout logout]]
+            [palaute.authentication.auth-middleware :refer [with-authentication]]
             [ring.middleware.not-modified :refer [wrap-not-modified]])
   (:gen-class))
 
@@ -41,42 +51,101 @@
         vals
         joda->timestamp)))
 
+(defn- wrap-database-backed-session [handler]
+    (ring-session/wrap-session handler
+                               {:root         "/palaute"
+                                :cookie-attrs {:secure (not (-> config :dev))}
+                                :store        (create-store)
+                                }))
+
+(defn wrap-session-client-headers [handler]
+  [handler]
+  (fn [{:keys [headers] :as req}]
+    (let [user-agent (:user-agent headers)
+          client-ip  (or (get headers "x-real-ip")
+                         (get headers "x-forwarded-for"))]
+      (handler
+       (-> req
+           (assoc-in [:session :user-agent] user-agent)
+           (assoc-in [:session :client-ip] client-ip))))))
+
 (api/defroutes app-routes
   (api/context
-   "/palaute" []
-   (api/GET "/health_check" [] (ok))
-   (api/context
-    "/api" []
+   "/api" []
+   (api/GET
+    "/keskiarvo" []
+    :query-params [{q :- s/Str nil}]
+    (ok
+     (first (exec yesql-get-average {:key q}))))
+   (api/GET
+    "/palaute" {session :session}
+    :query-params [{q :- s/Str nil}]
+    (prn session)
+    (ok
+     (doall
+      (map feedback->row
+           (exec yesql-get-feedback {:key q})))))
+   (api/POST
+    "/palaute" []
+    :body [feedback Feedback]
+    (exec yesql-insert-feedback<!
+          (->> feedback
+               (transform-keys ->snake_case)))
+    (created))))
+
+(defn- rewrite-url-for-environment
+  [url-from-session]
+  (if (-> config :dev)
+    url-from-session
+    (string/replace url-from-session #"^http://" "https://")))
+
+(defn- fake-login-provider [ticket]
+  (fn []
+    (let [username      "1.2.246.562.11.11111111111"
+          unique-ticket (str (System/currentTimeMillis) "-" (rand-int (Integer/MAX_VALUE)))]
+      [username unique-ticket])))
+
+(defonce cas-client (new-cas-client))
+
+(api/defroutes auth-routes
+  (api/context
+   "/auth" []
+   (api/undocumented
     (api/GET
-     "/keskiarvo" []
-     :query-params [{q :- s/Str nil}]
-     (ok
-      (first (palaute.db/exec yesql-get-average {:key q}))))
-    (api/GET
-     "/palaute" []
-     :query-params [{q :- s/Str nil}]
-     (ok
-      (doall
-       (map feedback->row
-            (palaute.db/exec yesql-get-feedback {:key q})))))
-    (api/POST
-     "/palaute" []
-     :body [feedback Feedback]
-     (palaute.db/exec yesql-insert-feedback<!
-                      (->> feedback
-                           (transform-keys ->snake_case)))
-     (created)))
-   (api/GET "/" [] index)
-   (resources "/" {:root "static"})))
+     "/cas" [ticket :as request]
+     (let [redirect-url   (if-let [url-from-session (get-in request [:session :original-url])]
+                            (rewrite-url-for-environment url-from-session)
+                            (get-in config [:public-config :service_url]))
+           login-provider (if (-> config :dev)
+                            (fake-login-provider ticket)
+                            (cas-login cas-client ticket))]
+       (login login-provider
+              redirect-url
+              (:session request))))
+    (api/POST "/cas" [logoutRequest]
+              (cas-initiated-logout logoutRequest))
+    (api/GET "/logout" {session :session}
+             (logout session)))))
 
 (def handler
   (api/api
-   app-routes))
+   (api/context
+    "/palaute" []
+    (api/GET "/health_check" [] (ok))
+    (api/undocumented
+     (-> app-routes
+         (wrap-database-backed-session)
+         (wrap-session-client-headers)) ; with-authentication
+     (-> auth-routes
+         (wrap-session-client-headers)))
+    (api/GET "/" [] index)
+    (resources "/" {:root "static"}))))
 
 (defn -main
   []
-  (let [config (edn/read-string (slurp (get env :palaute-config "config/config.edn")))
-        db     (:db config)
+  (configure-logging!)
+  (log/info "Server started!")
+  (let [db     (:db config)
         port   (or (:port config)
                    (Integer/parseInt (get env :palaute-http-port "8080")))]
     (palaute.db/set-datasource db)

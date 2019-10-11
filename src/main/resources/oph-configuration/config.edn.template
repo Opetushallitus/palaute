@@ -4,4 +4,11 @@
         :password      "{{palaute_db_app_password}}"
         :server-name   "{{palaute_db_host}}"
         :port-number   {{palaute_db_port}}
-        :currentSchema "public"}}
+        :currentSchema "public"}
+ :cas  {}
+ :urls {:virkailija-host "virkailija.untuvaopintopolku.fi"
+        :hakija-host     "oppija.untuvaopintopolku.fi"
+        :url-palaute     "http://localhost:9000/palaute"}
+ :public-config {:service_url "http://localhost:9000/palaute/"}
+ :dev  false
+ :log  {:base-path "/tmp"}}
