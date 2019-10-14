@@ -61,7 +61,7 @@
 (defn wrap-session-client-headers [handler]
   [handler]
   (fn [{:keys [headers] :as req}]
-    (let [user-agent (:user-agent headers)
+    (let [user-agent (get headers "user-agent")
           client-ip  (or (get headers "x-real-ip")
                          (get headers "x-forwarded-for"))]
       (handler
@@ -133,9 +133,11 @@
     "/palaute" []
     (api/GET "/health_check" [] (ok))
     (api/undocumented
-     (-> app-routes
+     (-> (api/middleware
+          [with-authentication]
+          app-routes)
          (wrap-database-backed-session)
-         (wrap-session-client-headers)) ; with-authentication
+         (wrap-session-client-headers))
      (-> auth-routes
          (wrap-session-client-headers)))
     (api/GET "/" [] index)
