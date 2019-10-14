@@ -139,6 +139,7 @@
          (wrap-database-backed-session)
          (wrap-session-client-headers))
      (-> auth-routes
+         (wrap-database-backed-session)
          (wrap-session-client-headers)))
     (api/GET "/" [] index)
     (resources "/" {:root "static"}))))
