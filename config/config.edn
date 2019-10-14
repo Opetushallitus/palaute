@@ -7,7 +7,6 @@
                  :currentSchema "public"}
  :cas           {}
  :urls          {:virkailija-host "virkailija.untuvaopintopolku.fi"
-                 :hakija-host     "oppija.untuvaopintopolku.fi"
                  :url-palaute     "http://localhost:9000/palaute"}
  :dev           true
  :log           {:base-path "/tmp"}

@@ -7,9 +7,8 @@
         :currentSchema "public"}
  :cas {:username "{{ataru_cas_username}}"
        :password "{{ataru_cas_password}}"}
- :urls {:virkailija-host "virkailija.untuvaopintopolku.fi"
-        :hakija-host     "oppija.untuvaopintopolku.fi"
-        :url-palaute     "https://virkailija.untuvaopintopolku.fi/palaute"}
- :public-config {:service_url "https://virkailija.untuvaopintopolku.fi/palaute/"}
+ :urls {:virkailija-host "{{host_cas}}"
+        :url-palaute     "{{host_ilb}}/palaute"}
+ :public-config {:service_url "{{host_ilb}}/palaute/"}
  :dev  false
  :log  {:base-path "/tmp"}}
