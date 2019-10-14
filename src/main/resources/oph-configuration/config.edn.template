@@ -8,7 +8,7 @@
  :cas  {}
  :urls {:virkailija-host "virkailija.untuvaopintopolku.fi"
         :hakija-host     "oppija.untuvaopintopolku.fi"
-        :url-palaute     "http://localhost:9000/palaute"}
- :public-config {:service_url "http://localhost:9000/palaute/"}
+        :url-palaute     "https://virkailija.untuvaopintopolku.fi/palaute"}
+ :public-config {:service_url "https://virkailija.untuvaopintopolku.fi/palaute/"}
  :dev  false
  :log  {:base-path "/tmp"}}
