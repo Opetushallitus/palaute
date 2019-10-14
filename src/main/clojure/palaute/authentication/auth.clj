@@ -52,7 +52,7 @@
                                  :superuser  oph-organization-member?}}))))
       (redirect-to-logged-out-page))
     (catch Exception e
-      (log/error e "Error in login ticket handling")
+      (log/error (str "Error in login ticket handling" (.getMessage e)))
       (redirect-to-logged-out-page))))
 
 (defn logout [session]
