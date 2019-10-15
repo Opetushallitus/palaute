@@ -78,9 +78,8 @@
     (ok
      (first (exec yesql-get-average {:key q}))))
    (api/GET
-    "/palaute" {session :session}
+    "/palaute" []
     :query-params [{q :- s/Str nil}]
-    (prn session)
     (ok
      (doall
       (map feedback->row
