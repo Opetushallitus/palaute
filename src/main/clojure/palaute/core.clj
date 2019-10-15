@@ -2,6 +2,7 @@
   (:require [ring.adapter.jetty :refer [run-jetty]]
             [compojure.core :refer [GET POST defroutes routes context]]
             [compojure.handler :refer [site]]
+            [palaute.palaute-schema :refer [Feedback]]
             [compojure.route :refer [resources files not-found]]
             [compojure.api.sweet :as api]
             [ring.middleware.reload :refer [wrap-reload]]
@@ -36,13 +37,6 @@
   (:gen-class))
 
 (sql/defqueries "sql/palaute.sql")
-
-(s/defschema Feedback
-  {:feedback   s/Str
-   :key        s/Str
-   :stars      (s/pred #(<= 1 % 5))
-   :user-agent s/Str
-   :data       (s/maybe s/Any)})
 
 (defn feedback->row [feedback]
   (let [joda->timestamp (fn [a]
