@@ -36,7 +36,8 @@
                                   seq)]
                     (when (and messages (not-empty messages))
                       (log/info (str "Got something! " (type messages)))
-                      (log/info (str messages))))
+                      (log/info (str messages))
+                      (log/info (str (type (first messages))))))
                   (catch Exception e
                     (log/error (str "Error while listening SQS: " (.getMessage e)))))
                 (recur)))))))))
