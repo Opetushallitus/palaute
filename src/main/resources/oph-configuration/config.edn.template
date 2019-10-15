@@ -5,6 +5,8 @@
         :server-name   "{{palaute_db_host}}"
         :port-number   {{palaute_db_port}}
         :currentSchema "public"}
+ :aws {:region "{{aws_region}}"
+       :queue-url "{{palaute_queue_url}}"}
  :cas {:username "{{ataru_cas_username}}"
        :password "{{ataru_cas_password}}"}
  :urls {:virkailija-host "{{host_cas}}"

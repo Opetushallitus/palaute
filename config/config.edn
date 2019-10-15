@@ -6,6 +6,7 @@
                  :port-number   5436
                  :currentSchema "public"}
  :cas           {}
+ :aws           {}
  :urls          {:virkailija-host "virkailija.untuvaopintopolku.fi"
                  :url-palaute     "http://localhost:9000/palaute"}
  :dev           true

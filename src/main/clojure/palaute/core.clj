@@ -13,6 +13,7 @@
             [palaute.db :refer [exec]]
             [palaute.timbre-config :refer [configure-logging!]]
             [ring.util.http-response :refer [ok created]]
+            [palaute.sqs :as sqs]
             [camel-snake-kebab.core :refer [->snake_case ->kebab-case-keyword ->camelCase]]
             [camel-snake-kebab.extras :refer [transform-keys]]
             [palaute.index :refer [index]]
@@ -146,6 +147,7 @@
 (defn -main
   []
   (configure-logging!)
+  (sqs/unload-sqs-queue)
   (log/info "Server started!")
   (let [db     (:db config)
         port   (or (:port config)
