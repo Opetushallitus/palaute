@@ -10,7 +10,7 @@
 (defn get-kayttooikeudet [username]
   (if (-> config :dev)
     {:oidHenkilo    "1.2.246.562.11.11111111000"
-     :organisaatiot [{:organisaatioOid "1.2.246.562.10.0439846"
+     :organisaatiot [{:organisaatioOid "1.2.246.562.10.00000000001"
                       :kayttooikeudet  [{:palvelu "PALAUTE"
                                          :oikeus  "CRUD"}
                                         {:palvelu "PALAUTE"

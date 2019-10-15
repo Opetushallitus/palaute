@@ -2,7 +2,6 @@
   (:require [palaute.url-helper :refer [resolve-url]]
             [palaute.db :as db]
             [palaute.authentication.cas-store :as cas-store]
-            [palaute.authentication.person-client :refer [get-person]]
             [palaute.authentication.kayttooikeus-client :refer [get-kayttooikeudet]]
             [environ.core :refer [env]]
             [medley.core :refer [map-kv]]
@@ -30,24 +29,15 @@
       (do
         (cas-store/login ticket)
         (let [virkailija                (get-kayttooikeudet username)
-              henkilo                   (get-person (:oidHenkilo virkailija))
               organization-oids         (->> (-> virkailija :organisaatiot)
                                              (map :organisaatioOid)
                                              (set))
-              fsd (prn organization-oids)
               oph-organization          "1.2.246.562.10.00000000001"
               oph-organization-member?  (contains? organization-oids oph-organization)]
           (log/info "user" username "logged in")
           (-> (resp/redirect redirect-url)
               (assoc :session
                      {:identity {:username   username
-                                 :first-name (:kutsumanimi henkilo)
-                                 :last-name  (:sukunimi henkilo)
-                                 :oid        (:oidHenkilo henkilo)
-                                 :lang       (or
-                                               (some #{(-> henkilo :asiointiKieli :kieliKoodi)}
-                                                     ["fi" "sv" "en"])
-                                               "fi")
                                  :ticket     ticket
                                  :superuser  oph-organization-member?}}))))
       (redirect-to-logged-out-page))
@@ -73,3 +63,6 @@
 (defn logged-in? [request]
   (let [ticket (-> request :session :identity :ticket)]
     (cas-store/logged-in? ticket)))
+
+(defn superuser? [request]
+  (-> request :session :identity :superuser))

@@ -7,7 +7,7 @@
     [clojure.data.json :as json]
     [ring.util.request :refer [request-url]]
     [palaute.url-helper :refer [resolve-url]]
-    [palaute.authentication.auth :refer [logged-in?]]))
+    [palaute.authentication.auth :refer [logged-in? superuser?]]))
 
 
 (defn cas-auth-url
@@ -19,7 +19,8 @@
 (defn any-access [request] true)
 
 (defn- authenticated-access [request]
-  (if (logged-in? request)
+  (if (and (logged-in? request)
+           (superuser? request))
     true
     (error "Authentication required")))
 
