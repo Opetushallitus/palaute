@@ -20,6 +20,7 @@
 
 (defn save-message [message]
   (try
+    (log/info "Handling message with ID " (.getMessageId message))
     (let [feedback (->> (FeedbackEnforcer (json/parse-string (.getBody message) true))
                         (transform-keys ->snake_case))]
       (exec yesql-insert-feedback<!
