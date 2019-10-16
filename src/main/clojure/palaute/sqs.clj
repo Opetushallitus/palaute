@@ -48,9 +48,9 @@
                                   .getMessages
                                   seq)]
                     (doseq [message messages]
-                      (if-let [body (.getBody message)]
+                      (if-let [feedback (FeedbackEnforcer (json/parse-string (.getBody message) true))]
                         (save-feedback
-                         (->> (FeedbackEnforcer (json/parse-string body true))
+                         (->> feedback
                               (transform-keys ->snake_case)))))
                     (when (and messages (not-empty messages))
                       (log/info (str "Got something! " (type messages)))
