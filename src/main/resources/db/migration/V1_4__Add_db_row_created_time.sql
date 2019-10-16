@@ -1,0 +1,3 @@
+ALTER TABLE feedback ADD COLUMN db_row_created_time TIMESTAMP WITH TIME ZONE DEFAULT now();
+ALTER TABLE feedback ALTER COLUMN created_time DROP DEFAULT;
+

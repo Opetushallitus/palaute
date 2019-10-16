@@ -2,16 +2,21 @@
   (:require [ring.adapter.jetty :refer [run-jetty]]
             [compojure.core :refer [GET POST defroutes routes context]]
             [compojure.handler :refer [site]]
-            [palaute.palaute-schema :refer [Feedback]]
+            [ring.swagger.coerce :as coerce]
+            [compojure.api.middleware
+             :refer
+             [api-middleware-defaults default-coercion-matchers]]
+            [palaute.palaute-schema :refer [Feedback formatter zone-id json-schema-coercion-matcher]]
             [compojure.route :refer [resources files not-found]]
             [compojure.api.sweet :as api]
             [ring.middleware.reload :refer [wrap-reload]]
-            [ring.middleware.json :refer [wrap-json-response wrap-json-body]]
             [ring.util.response :refer [response]]
+            [cheshire.generate :refer [add-encoder]]
             [taoensso.timbre :as log]
             [ring.util.request :refer [body-string]]
             [palaute.authentication.cas-client :refer [new-cas-client]]
             [palaute.db :refer [exec]]
+            [clj-time.format :as tf]
             [palaute.timbre-config :refer [configure-logging!]]
             [ring.util.http-response :refer [ok created]]
             [palaute.sqs :as sqs]
@@ -22,6 +27,7 @@
             [clojure.string :as string]
             [ring.middleware.session :as ring-session]
             [schema.coerce :as c]
+            [clj-time.coerce :as tc]
             [environ.core :refer [env]]
             [palaute.authentication.session-store :refer [create-store]]
             [palaute.config :refer [config]]
@@ -34,9 +40,24 @@
              [cas-login login cas-initiated-logout logout]]
             [palaute.authentication.auth-middleware :refer [with-authentication]]
             [ring.middleware.not-modified :refer [wrap-not-modified]])
+  (:import java.util.Locale
+           java.time.ZonedDateTime
+           org.joda.time.DateTime
+           java.util.Date
+           org.joda.time.DateTimeZone
+           org.joda.time.format.DateTimeFormat
+           org.joda.time.format.ISODateTimeFormat
+           org.joda.time.format.DateTimeFormatterBuilder
+           java.time.format.DateTimeFormatter)
   (:gen-class))
 
 (sql/defqueries "sql/palaute.sql")
+
+(add-encoder DateTime
+             (fn [d json-generator]
+               (.writeString
+                 json-generator
+                 (.print formatter (.withZone d zone-id)))))
 
 (defn feedback->row [feedback]
   (let [joda->timestamp (fn [a]
@@ -47,11 +68,10 @@
         joda->timestamp)))
 
 (defn- wrap-database-backed-session [handler]
-    (ring-session/wrap-session handler
-                               {:root         "/palaute"
-                                :cookie-attrs {:secure (not (-> config :dev))}
-                                :store        (create-store)
-                                }))
+  (ring-session/wrap-session handler
+                             {:root         "/palaute"
+                              :cookie-attrs {:secure (not (-> config :dev))}
+                              :store        (create-store)}))
 
 (defn wrap-session-client-headers [handler]
   [handler]
@@ -67,6 +87,11 @@
 (api/defroutes app-routes
   (api/context
    "/api" []
+   :coercion
+   (constantly
+    (merge
+     default-coercion-matchers
+     {:body json-schema-coercion-matcher}))
    (api/GET
     "/keskiarvo" []
     :query-params [{q :- s/Str nil}]
@@ -127,11 +152,12 @@
     "/palaute" []
     (api/GET "/health_check" [] (ok))
     (api/undocumented
-     (-> (api/middleware
-          [with-authentication]
-          app-routes)
-         (wrap-database-backed-session)
-         (wrap-session-client-headers))
+     (->
+       (api/middleware
+        [with-authentication]
+        app-routes)
+       (wrap-database-backed-session)
+       (wrap-session-client-headers))
      (-> auth-routes
          (wrap-database-backed-session)
          (wrap-session-client-headers)))

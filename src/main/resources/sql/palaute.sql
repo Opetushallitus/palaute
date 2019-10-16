@@ -3,12 +3,14 @@
 INSERT INTO feedback (
   key,
   feedback,
+  created_time,
   stars,
   user_agent,
   data
 ) VALUES (
   :key,
   :feedback,
+  :created_at,
   :stars,
   :user_agent,
   :data
