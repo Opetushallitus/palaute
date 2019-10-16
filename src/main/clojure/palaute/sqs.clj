@@ -18,11 +18,13 @@
 
 (sql/defqueries "sql/palaute.sql")
 
-(defn save-feedback [feedback]
+(defn save-message [message]
   (try
-    (exec yesql-insert-feedback<!
-          (->> feedback
-               (transform-keys ->snake_case)))
+    (let [feedback (->> (FeedbackEnforcer (json/parse-string (.getBody message) true))
+                        (transform-keys ->snake_case))]
+      (exec yesql-insert-feedback<!
+            (->> feedback
+                 (transform-keys ->snake_case))))
     (catch Exception e
       (log/error (str "Error saving feedback: " (.getMessage e))))))
 
@@ -68,10 +70,7 @@
                 (try
                   (let [messages (batch-receive amazon-sqs)]
                     (doseq [message messages]
-                      (when-let [feedback (FeedbackEnforcer (json/parse-string (.getBody message) true))]
-                        (save-feedback
-                         (->> feedback
-                              (transform-keys ->snake_case)))))
+                      (save-message message))
                     (batch-delete amazon-sqs messages))
                   (catch Exception e
                     (log/error (str "Error while listening SQS: " (.getMessage e)))))
