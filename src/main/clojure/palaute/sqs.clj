@@ -26,6 +26,33 @@
     (catch Exception e
       (log/error (str "Error saving feedback: " (.getMessage e))))))
 
+(defn batch-receive [amazon-sqs]
+  (->>
+   (-> (new ReceiveMessageRequest)
+       (.withQueueUrl (:queue-url (:aws config)))
+       (.withWaitTimeSeconds
+         (.intValue (.getSeconds (Duration/ofSeconds 20)))))
+   (.receiveMessage amazon-sqs)
+   .getMessages
+   seq))
+
+(defn batch-delete [amazon-sqs messages]
+  (when (seq messages)
+    (when-let [failed (->> messages
+                           (map-indexed
+                            (fn [i message]
+                              (new DeleteMessageBatchRequestEntry
+                                (str i)
+                                (.getReceiptHandle message))))
+                           (.deleteMessageBatch amazon-sqs (:queue-url (:aws config)))
+                           .getFailed
+                           seq)]
+      (throw
+        (new RuntimeException
+          (->> failed
+               (map #(.getMessages %))
+               (clojure.string/join "; ")))))))
+
 (defn unload-sqs-queue []
   (when-not (-> config :dev)
     (.start
@@ -39,23 +66,13 @@
                                       .build)]
               (loop []
                 (try
-                  (let [messages (->>
-                                  (-> (new ReceiveMessageRequest)
-                                      (.withQueueUrl (:queue-url (:aws config)))
-                                      (.withWaitTimeSeconds
-                                        (.intValue (.getSeconds (Duration/ofSeconds 20)))))
-                                  (.receiveMessage amazon-sqs)
-                                  .getMessages
-                                  seq)]
+                  (let [messages (batch-receive amazon-sqs)]
                     (doseq [message messages]
-                      (if-let [feedback (FeedbackEnforcer (json/parse-string (.getBody message) true))]
+                      (when-let [feedback (FeedbackEnforcer (json/parse-string (.getBody message) true))]
                         (save-feedback
                          (->> feedback
                               (transform-keys ->snake_case)))))
-                    (when (and messages (not-empty messages))
-                      (log/info (str "Got something! " (type messages)))
-                      (log/info (str messages))
-                      (log/info (str (type (first messages))))))
+                    (batch-delete amazon-sqs messages))
                   (catch Exception e
                     (log/error (str "Error while listening SQS: " (.getMessage e)))))
                 (recur)))))))))
