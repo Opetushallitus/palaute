@@ -214,7 +214,7 @@
                    (when
                      (or
                       (>= status 400)
-                      (clojure.string/starts-with? uri "/lomake-editori/api/"))
+                      (clojure.string/starts-with? uri "/palaute/api/"))
                      (access-log/log options request response totaltime))))))
 
 (defn -main
