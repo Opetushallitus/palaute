@@ -8,7 +8,7 @@ import 'moment/locale/fi';
 
 const Results = (props) => {
     const query = new URLSearchParams(props.location.search).get("q");
-    const [data, setData] = useState();
+    const [state , setState] = useState();
     useEffect(() => {
         const controller = new AbortController();
         const runEffect = async () => {
@@ -17,7 +17,7 @@ const Results = (props) => {
                     "/palaute/api/palaute?q=" + query,
                     {signal: controller.signal}
                 ).then(r => r.json());
-                setData(data);
+                setState({...state, data: data});
             } catch (err) {
                 if (err.name === 'AbortError') {
                     console.log("Request was canceled via controller.abort");
@@ -30,7 +30,11 @@ const Results = (props) => {
         return () => {
             controller.abort();
         }
-    }, [setData, query]);
+    }, [setState, query]);
+
+    const show = ((state || {}).show || 10);
+    const realData = ((state || {}).data || []);
+    const data = realData.slice(0, show);
 
     const average = (data) => {
         const [s,c] = (data || []).reduce(([sum, count], row) => [sum + row[1], ++count], [0,0]);
@@ -47,7 +51,7 @@ const Results = (props) => {
             <Table.Header>
                 <Table.Row>
                     <Table.HeaderCell colSpan='4'>
-                        <Form onSubmit={event => Excel(data.map(rowToExcel))}>
+                        <Form onSubmit={event => Excel(realData.map(rowToExcel))}>
                             <Button icon labelPosition='left' disabled={(data || []).length === 0}>
                                 <Icon name='download'/>
                                 Lataa
@@ -57,7 +61,7 @@ const Results = (props) => {
                 </Table.Row>
                 <Table.Row>
                     <Table.HeaderCell>
-                        <Label ribbon>Keskiarvo {average(data)}</Label>
+                        <Label ribbon>Keskiarvo {average(realData)}</Label>
                         Arvosana
                     </Table.HeaderCell>
                     <Table.HeaderCell width={10}>Palaute</Table.HeaderCell>
@@ -75,6 +79,20 @@ const Results = (props) => {
                     </Table.Row>;
                 })}
             </Table.Body>
+            {realData.length !== data.length ?
+                <Table.Footer fullWidth>
+                    <Table.Row>
+                        <Table.HeaderCell colSpan='4' className={"stackable center aligned page grid"}>
+                            <Button
+                                icon
+                                labelPosition='left'
+                                primary
+                                onClick={event => setState({...state, show: (show + 500)})}>
+                                <Icon name='angle double down'/>Näytä lisää
+                            </Button>
+                        </Table.HeaderCell>
+                    </Table.Row>
+                </Table.Footer> : null}
         </Table>
     );
 };
