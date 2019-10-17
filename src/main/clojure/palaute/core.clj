@@ -119,20 +119,28 @@
      default-coercion-matchers
      {:body json-schema-coercion-matcher}))
    (api/GET
-    "/keskiarvo" []
+    "/keskiarvo" {session :session}
     :query-params [{q :- s/Str nil}]
     (ok
      (first (exec yesql-get-average {:key q}))))
    (api/GET
-    "/palaute" []
+    "/palaute" {session :session}
     :query-params [{q :- s/Str nil}]
+    (audit-log/log {:new       {:q q}
+                    :id        {:q q}
+                    :session   session
+                    :operation audit-log/operation-read})
     (ok
      (doall
       (map feedback->row
            (exec yesql-get-feedback {:key q})))))
    (api/POST
-    "/palaute" []
+    "/palaute" {session :session}
     :body [feedback Feedback]
+    (audit-log/log {:new       feedback
+                    :id        {:key (:key feedback)}
+                    :session   session
+                    :operation audit-log/operation-new})
     (exec yesql-insert-feedback<!
           (->> feedback
                (transform-keys ->snake_case)))
