@@ -11,4 +11,5 @@
      [:title "Palaute"]]
     [:body
      [:div#app]
-     [:script {:src "/palaute/index.js"}]]]))
+     [:script {:src "/palaute/index.js"}]
+     [:script {:src "/virkailija-raamit/apply-raamit.js"}]]]))

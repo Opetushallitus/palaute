@@ -6,6 +6,8 @@
             [compojure.api.middleware
              :refer
              [api-middleware-defaults default-coercion-matchers]]
+            [medley.core :refer [map-kv]]
+            [org.httpkit.client :as http]
             [palaute.palaute-schema :refer [Feedback formatter zone-id json-schema-coercion-matcher]]
             [compojure.route :refer [resources files not-found]]
             [compojure.api.sweet :as api]
@@ -84,6 +86,29 @@
            (assoc-in [:session :user-agent] user-agent)
            (assoc-in [:session :client-ip] client-ip))))))
 
+(defn- proxy-request [service-path request]
+  (let [prefix   (str "https://" (get-in config [:urls :virkailija-host]) service-path)
+        path     (-> request :params :*)
+        response @(http/get (str prefix path) {:headers (dissoc (:headers request) "host")})]
+    (assoc
+     response
+     ;; http-kit returns header names as keywords, but Ring requires strings :(
+     :headers (map-kv
+               (fn [header-kw header-value] [(name header-kw) header-value])
+               (:headers request)))))
+
+(api/defroutes local-raami-routes
+  (api/undocumented
+   (api/GET "/virkailija-raamit/*" request
+            :query-params [{fingerprint :- [s/Str] nil}]
+            (proxy-request "/virkailija-raamit/" request))
+   (api/GET "/authentication-service/*" request
+            (proxy-request "/authentication-service/" request))
+   (api/GET "/cas/*" request
+            (proxy-request "/cas/" request))
+   (api/GET "/lokalisointi/*" request
+            (proxy-request "/lokalisointi/" request))))
+
 (api/defroutes app-routes
   (api/context
    "/api" []
@@ -148,6 +173,8 @@
 
 (def handler
   (api/api
+   (when (-> config :dev)
+     local-raami-routes)
    (api/context
     "/palaute" []
     (api/GET "/health_check" [] (ok))

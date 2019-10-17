@@ -1,4 +1,3 @@
-import 'semantic-ui-css/semantic.min.css';
 import React, {useState} from "react";
 import {withRouter} from "react-router";
 import {Form, Input} from 'semantic-ui-react';
