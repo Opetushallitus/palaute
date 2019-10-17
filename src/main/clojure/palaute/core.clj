@@ -25,6 +25,7 @@
             [camel-snake-kebab.core :refer [->snake_case ->kebab-case-keyword ->camelCase]]
             [camel-snake-kebab.extras :refer [transform-keys]]
             [palaute.index :refer [index]]
+            [palaute.log.audit-log :as audit-log]
             [schema.core :as s]
             [clojure.string :as string]
             [ring.middleware.session :as ring-session]
