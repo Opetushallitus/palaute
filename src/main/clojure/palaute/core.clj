@@ -88,19 +88,6 @@
            (assoc-in [:session :user-agent] user-agent)
            (assoc-in [:session :client-ip] client-ip))))))
 
-(defn- wrap-with-access-logger [handler]
-  (wrap-with-logger handler
-    {:debug identity
-     :info (fn [x] (access-log/info x))
-     :warn (fn [x] (access-log/warn x))
-     :error (fn [x] (access-log/error x))
-     :pre-logger (fn [_ _] nil)
-     :post-logger (fn [options {:keys [uri] :as request} {:keys [status] :as response} totaltime]
-                    (when (or
-                            (>= status 400)
-                            (clojure.string/starts-with? uri "/palaute/"))
-                      (access-log/log options request response totaltime)))}))
-
 (defn- proxy-request [service-path request]
   (let [prefix   (str "https://" (get-in config [:urls :virkailija-host]) service-path)
         path     (-> request :params :*)
@@ -195,26 +182,40 @@
              (logout session)))))
 
 (def handler
-  (api/api
-   (when (-> config :dev)
-     local-raami-routes)
-   (api/middleware
-     [wrap-with-access-logger]
+  (->
+    (api/api
+     (when (-> config :dev)
+       local-raami-routes)
+
      (api/context
       "/palaute" []
       (api/GET "/health_check" [] (ok))
       (api/undocumented
+
        (->
-         (api/middleware
-          [with-authentication]
-          app-routes)
-         (wrap-database-backed-session)
-         (wrap-session-client-headers))
+        (api/middleware
+         [with-authentication]
+         app-routes)
+        (wrap-database-backed-session)
+        (wrap-session-client-headers))
        (-> auth-routes
            (wrap-database-backed-session)
-           (wrap-session-client-headers)))))
-    (api/GET "/" [] index)
-    (resources "/" {:root "static"})))
+           (wrap-session-client-headers)))
+      (api/GET "/" [] index)
+      (resources "/" {:root "static"})))
+    (wrap-with-logger
+     :debug      identity
+     :info       (fn [x] (access-log/info x))
+     :warn       (fn [x] (access-log/warn x))
+     :error      (fn [x] (access-log/error x))
+     :pre-logger (fn [_ _] nil)
+     :post-logger
+                 (fn [options {:keys [uri] :as request} {:keys [status] :as response} totaltime]
+                   (when
+                     (or
+                      (>= status 400)
+                      (clojure.string/starts-with? uri "/lomake-editori/api/"))
+                     (access-log/log options request response totaltime))))))
 
 (defn -main
   []
