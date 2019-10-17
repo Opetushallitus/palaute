@@ -13,4 +13,4 @@
         :url-palaute     "{{host_ilb}}/palaute"}
  :public-config {:service_url "{{host_ilb}}/palaute/"}
  :dev  false
- :log  {:base-path "/tmp"}}
+ :log  {:base-path "/root/logs"}}

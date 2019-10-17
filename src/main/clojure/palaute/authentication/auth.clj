@@ -39,7 +39,8 @@
           (log/info "user" username "logged in")
           (-> (resp/redirect redirect-url)
               (assoc :session
-                     {:identity {:username   username
+                     {:identity {:oid        (:oidHenkilo virkailija)
+                                 :username   username
                                  :ticket     ticket
                                  :rights     right-organization-oids
                                  :superuser  oph-organization-member?}}))))
