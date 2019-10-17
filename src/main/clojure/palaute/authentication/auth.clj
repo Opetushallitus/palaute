@@ -5,6 +5,7 @@
             [palaute.authentication.kayttooikeus-client :refer [get-kayttooikeudet]]
             [environ.core :refer [env]]
             [medley.core :refer [map-kv]]
+            [palaute.authentication.user-rights :as rights]
             [ring.util.http-response :refer [ok]]
             [ring.util.response :as resp]
             [taoensso.timbre :as log]
@@ -29,6 +30,7 @@
       (do
         (cas-store/login ticket)
         (let [virkailija                (get-kayttooikeudet username)
+              right-organization-oids   (rights/virkailija->right-organization-oids virkailija rights/right-names)
               organization-oids         (->> (-> virkailija :organisaatiot)
                                              (map :organisaatioOid)
                                              (set))
@@ -39,6 +41,7 @@
               (assoc :session
                      {:identity {:username   username
                                  :ticket     ticket
+                                 :rights     right-organization-oids
                                  :superuser  oph-organization-member?}}))))
       (redirect-to-logged-out-page))
     (catch Exception e
@@ -66,3 +69,9 @@
 
 (defn superuser? [request]
   (-> request :session :identity :superuser))
+
+(defn create-rights? [request]
+  (-> request :session :identity :rights :create))
+
+(defn read-rights? [request]
+  (-> request :session :identity :rights :read))

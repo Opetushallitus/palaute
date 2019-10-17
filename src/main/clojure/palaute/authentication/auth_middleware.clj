@@ -7,7 +7,7 @@
     [clojure.data.json :as json]
     [ring.util.request :refer [request-url]]
     [palaute.url-helper :refer [resolve-url]]
-    [palaute.authentication.auth :refer [logged-in? superuser?]]))
+    [palaute.authentication.auth :refer [logged-in? superuser? read-rights? create-rights?]]))
 
 
 (defn cas-auth-url
@@ -18,9 +18,17 @@
 
 (defn any-access [request] true)
 
+(defn- authenticated-create-access [request]
+  (if (and (logged-in? request)
+           (or (superuser? request)
+               (create-rights? request)))
+    true
+    (error "Authentication required")))
+
 (defn- authenticated-access [request]
   (if (and (logged-in? request)
-           (superuser? request))
+           (or (superuser? request)
+               (read-rights? request)))
     true
     (error "Authentication required")))
 
@@ -50,6 +58,11 @@
                        :handler any-access}
                       {:pattern #".*/api/.*"
                        :handler authenticated-access
+                       :request-method :get
+                       :on-error send-not-authenticated-api-response}
+                      {:pattern #".*/api/.*"
+                       :handler authenticated-create-access
+                       :request-method :post
                        :on-error send-not-authenticated-api-response}
                       {:pattern #".*"
                        :handler authenticated-access

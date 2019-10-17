@@ -10,16 +10,14 @@
 (defn get-kayttooikeudet [username]
   (if (-> config :dev)
     {:oidHenkilo    "1.2.246.562.11.11111111000"
-     :organisaatiot [{:organisaatioOid "1.2.246.562.10.00000000001"
+     :organisaatiot [{:organisaatioOid "1.2.246.562.10.1"
                       :kayttooikeudet  [{:palvelu "PALAUTE"
-                                         :oikeus  "CRUD"}
+                                         :oikeus  "PALAUTE_READ"}
                                         {:palvelu "PALAUTE"
-                                         :oikeus  "CRUD"}]}
+                                         :oikeus  "PALAUTE_CREATE"}]}
                      {:organisaatioOid "1.2.246.562.28.2"
                       :kayttooikeudet  [{:palvelu "PALAUTE"
-                                         :oikeus  "CRUD"}
-                                        {:palvelu "PALAUTE"
-                                         :oikeus  "CRUD"}]}]}
+                                         :oikeus  "PALAUTE_CREATE"}]}]}
     (let [url                   (url/resolve-url :kayttooikeus-service.kayttooikeus.kayttaja
                                                  {"username" username})
           {:keys [status body]} (cas/cas-authenticated-get kayttooikeus-cas-client url)]
