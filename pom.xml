@@ -17,6 +17,22 @@
     </properties>
     <dependencies>
         <dependency>
+            <groupId>onelog</groupId>
+            <artifactId>onelog</artifactId>
+            <version>0.5.0</version>
+        </dependency>
+        <dependency>
+            <groupId>ring.middleware.logger</groupId>
+            <artifactId>ring.middleware.logger</artifactId>
+            <version>0.5.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>onelog</groupId>
+                    <artifactId>onelog</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
             <groupId>org.clojure</groupId>
             <artifactId>core.match</artifactId>
             <version>0.3.0</version>

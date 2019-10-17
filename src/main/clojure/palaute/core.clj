@@ -12,6 +12,7 @@
             [compojure.route :refer [resources files not-found]]
             [compojure.api.sweet :as api]
             [ring.middleware.reload :refer [wrap-reload]]
+            [ring.middleware.logger :refer [wrap-with-logger] :as middleware-logger]
             [ring.util.response :refer [response]]
             [cheshire.generate :refer [add-encoder]]
             [taoensso.timbre :as log]
@@ -33,6 +34,7 @@
             [clj-time.coerce :as tc]
             [environ.core :refer [env]]
             [palaute.authentication.session-store :refer [create-store]]
+            [palaute.log.access-log :as access-log]
             [palaute.config :refer [config]]
             [palaute.flyway :refer [migrate]]
             [ring.middleware.resource :refer [wrap-resource]]
@@ -77,7 +79,6 @@
                               :store        (create-store)}))
 
 (defn wrap-session-client-headers [handler]
-  [handler]
   (fn [{:keys [headers] :as req}]
     (let [user-agent (get headers "user-agent")
           client-ip  (or (get headers "x-real-ip")
@@ -181,24 +182,40 @@
              (logout session)))))
 
 (def handler
-  (api/api
-   (when (-> config :dev)
-     local-raami-routes)
-   (api/context
-    "/palaute" []
-    (api/GET "/health_check" [] (ok))
-    (api/undocumented
-     (->
-       (api/middleware
-        [with-authentication]
-        app-routes)
-       (wrap-database-backed-session)
-       (wrap-session-client-headers))
-     (-> auth-routes
-         (wrap-database-backed-session)
-         (wrap-session-client-headers)))
-    (api/GET "/" [] index)
-    (resources "/" {:root "static"}))))
+  (->
+    (api/api
+     (when (-> config :dev)
+       local-raami-routes)
+
+     (api/context
+      "/palaute" []
+      (api/GET "/health_check" [] (ok))
+      (api/undocumented
+
+       (->
+        (api/middleware
+         [with-authentication]
+         app-routes)
+        (wrap-database-backed-session)
+        (wrap-session-client-headers))
+       (-> auth-routes
+           (wrap-database-backed-session)
+           (wrap-session-client-headers)))
+      (api/GET "/" [] index)
+      (resources "/" {:root "static"})))
+    (wrap-with-logger
+     :debug      identity
+     :info       (fn [x] (access-log/info x))
+     :warn       (fn [x] (access-log/warn x))
+     :error      (fn [x] (access-log/error x))
+     :pre-logger (fn [_ _] nil)
+     :post-logger
+                 (fn [options {:keys [uri] :as request} {:keys [status] :as response} totaltime]
+                   (when
+                     (or
+                      (>= status 400)
+                      (clojure.string/starts-with? uri "/palaute/api/"))
+                     (access-log/log options request response totaltime))))))
 
 (defn -main
   []
