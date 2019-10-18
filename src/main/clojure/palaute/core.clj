@@ -11,6 +11,7 @@
             [palaute.palaute-schema :refer [Feedback formatter zone-id json-schema-coercion-matcher]]
             [compojure.route :refer [resources files not-found]]
             [compojure.api.sweet :as api]
+            [compojure.api.exception :as ex]
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.logger :refer [wrap-with-logger] :as middleware-logger]
             [ring.util.response :refer [response]]
@@ -111,16 +112,17 @@
    (api/GET "/lokalisointi/*" request
             (proxy-request "/lokalisointi/" request))))
 
-(api/defroutes app-routes
+(defn app-routes []
   (api/context
    "/api" []
+    :tags ["palaute-api"]
    :coercion
    (constantly
     (merge
      default-coercion-matchers
      {:body json-schema-coercion-matcher}))
-   (api/GET
-    "/keskiarvo" {session :session}
+   (api/GET "/keskiarvo" {session :session}
+     :summary "Palautteiden keskiarvo"
     :query-params [{q :- s/Str nil}]
     (ok
      (first (exec yesql-get-average {:key q}))))
@@ -161,7 +163,7 @@
 
 (defonce cas-client (new-cas-client))
 
-(api/defroutes auth-routes
+(defn auth-routes []
   (api/context
    "/auth" []
    (api/undocumented
@@ -181,28 +183,50 @@
     (api/GET "/logout" {session :session}
              (logout session)))))
 
+(defn health-check-routes []
+  (api/context
+    "/health_check" []
+    :tags ["health-check-api"]
+    (api/GET "/" []
+      :summary "Health check -rajapinta"
+      (ok))))
+
 (def handler
   (->
     (api/api
+      {:swagger {:spec "/palaute/swagger.json"
+                 :ui "/palaute/api-docs"
+                 :data {:info {:version "1.0.0"
+                               :title "Palautepalvelu"
+                               :description "Palautepalvelun rajapintadokumentaatio"}
+                        :tags [{:name "palaute-api" :description "Palautteiden luku- ja tuontirajapinnat"}
+                               {:name "health-check-api" :description "Healthcheck"}]}}
+       :exceptions {:handlers {::ex/request-parsing
+                               (ex/with-logging ex/request-parsing-handler :warn)
+                               ::ex/request-validation
+                               (ex/with-logging ex/request-validation-handler :warn)
+                               ::ex/response-validation
+                               (ex/with-logging ex/response-validation-handler :error)
+                               ::ex/default
+                               (ex/with-logging ex/safe-handler :error)}}}
      (when (-> config :dev)
        local-raami-routes)
 
-     (api/context
-      "/palaute" []
-      (api/GET "/health_check" [] (ok))
-      (api/undocumented
+      (api/context
+        "/palaute" []
 
-       (->
-        (api/middleware
-         [with-authentication]
-         app-routes)
-        (wrap-database-backed-session)
-        (wrap-session-client-headers))
-       (-> auth-routes
-           (wrap-database-backed-session)
-           (wrap-session-client-headers)))
-      (api/GET "/" [] index)
-      (resources "/" {:root "static"})))
+        (api/middleware [wrap-database-backed-session
+                         with-authentication]
+                        (api/middleware [wrap-session-client-headers]
+                                        (app-routes)))
+
+        (api/middleware [wrap-database-backed-session]
+                        (api/middleware [wrap-session-client-headers]
+                                        (auth-routes)))
+        (health-check-routes)
+
+        (api/GET "/" [] index)
+        (resources "/" {:root "static"})))
     (wrap-with-logger
      :debug      identity
      :info       (fn [x] (access-log/info x))
