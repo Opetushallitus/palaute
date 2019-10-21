@@ -2,7 +2,8 @@
   (:require
     [schema.core :as s]
     [ring.swagger.coerce :as coerce]
-    [schema.coerce :as c])
+    [schema.coerce :as c]
+    [palaute.schema-util :refer [describe]])
   (:import java.util.Locale
            java.time.ZonedDateTime
            org.joda.time.DateTime
@@ -17,12 +18,14 @@
 (defonce zone-id (DateTimeZone/forID "Europe/Helsinki"))
 
 (s/defschema Feedback
-  {:feedback   s/Str
-   :key        s/Str
-   :created-at DateTime
-   :stars      (s/pred #(<= 1 % 5))
-   :user-agent s/Str
-   :data       (s/maybe s/Any)})
+  (describe
+    "Palaute"
+    :feedback s/Str "Palautteen sisältö"
+    :key s/Str "Avain joka yksilöi mitä palaute koskee"
+    :created-at DateTime "Aikaleima jolloin palaute on onnettu"
+    :stars (s/pred #(<= 1 % 5)) "Arvostelu tähtien määrällä (1-5 tähteä)"
+    :user-agent s/Str "Palautteen antajan selaimen käyttäjäagentti"
+    :data (s/maybe s/Any) "Muuta palautteeseen liittyvää järjestelmäkohtaista metadataa"))
 
 (defmulti time-matcher identity)
 

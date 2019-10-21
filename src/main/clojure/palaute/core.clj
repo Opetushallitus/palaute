@@ -129,6 +129,7 @@
    (api/GET
     "/palaute" {session :session}
     :query-params [{q :- s/Str nil}]
+    :return [Feedback]
     (audit-log/log {:new       {:q q}
                     :id        {:q q}
                     :session   session
@@ -196,6 +197,8 @@
     (api/api
       {:swagger {:spec "/palaute/swagger.json"
                  :ui "/palaute/api-docs"
+                 :produces ["application/json"]
+                 :consumes ["application/json"]
                  :data {:info {:version "1.0.0"
                                :title "Palautepalvelu"
                                :description "Palautepalvelun rajapintadokumentaatio"}
