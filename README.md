@@ -33,5 +33,5 @@ Start watching frontend changes with `npm run start`
 
 Start backend with `mvn clojure:compile clojure:run` (You have to run `mvn package` before this)
 
-Open in browser (http://localhost:9000)
+Open in browser (http://localhost:9000/palaute)
 
