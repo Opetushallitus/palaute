@@ -66,9 +66,7 @@
 
 (defn feedback->row [feedback]
   (let [joda->timestamp (fn [a]
-                            (if (first a)
-                              (assoc (vec a) 0 (.getMillis (first a)))
-                              (assoc (vec a) 0 1572506204343)))]
+                            (assoc (vec a) 0 (.getMillis (first a))))]
     (-> feedback
         (select-keys [:created_time :stars :user_agent :feedback])
         vals
@@ -223,10 +221,10 @@
   []
   (configure-logging!)
   (sqs/unload-sqs-queue)
-  (log/info "Server started!")
   (let [db     (:db config)
         port   (or (:port config)
                    (Integer/parseInt (get env :palaute-http-port "8080")))]
+    (log/info (str "Server started on port " port " and using database " (-> db :server-name) ":" (-> db :port-number)))
     (palaute.db/set-datasource db)
     (migrate db)
     (run-jetty (wrap-reload #'handler) {:port port})))
