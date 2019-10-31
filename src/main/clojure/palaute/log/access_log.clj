@@ -14,7 +14,7 @@
 (defonce access-log-config
          (assoc timbre/example-config
            :appenders {:file-appender
-                                        (assoc (rolling-appender {:path    (str (-> config :log :hakija-base-path)
+                                        (assoc (rolling-appender {:path    (str (-> config :log :base-path)
                                                                                 "/access_" service-name
                                                                                 ;; Hostname will differentiate files in actual environments
                                                                                 (when (:hostname env) (str "_" (:hostname env))))
