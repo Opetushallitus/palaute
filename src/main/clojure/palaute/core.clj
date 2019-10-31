@@ -66,7 +66,9 @@
 
 (defn feedback->row [feedback]
   (let [joda->timestamp (fn [a]
-                          (assoc (vec a) 0 (.getMillis (first a))))]
+                            (if (first a)
+                              (assoc (vec a) 0 (.getMillis (first a)))
+                              (assoc (vec a) 0 1572506204343)))]
     (-> feedback
         (select-keys [:created_time :stars :user_agent :feedback])
         vals
