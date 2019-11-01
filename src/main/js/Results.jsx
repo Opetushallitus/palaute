@@ -10,25 +10,24 @@ const Results = (props) => {
     const query = new URLSearchParams(props.location.search).get("q");
     const [state , setState] = useState();
     useEffect(() => {
-        const controller = new AbortController();
         const runEffect = async () => {
-            try {
-                const data = await fetch(
-                    "/palaute/api/palaute?q=" + query,
-                    {signal: controller.signal}
-                ).then(r => r.json());
-                setState({...state, data: data});
-            } catch (err) {
-                if (err.name === 'AbortError') {
-                    console.log("Request was canceled via controller.abort");
-                    return;
+            const data = await fetch(
+                "/palaute/api/palaute?q=" + query
+            ).then(r => {
+                if(r.status === 200) {
+                    return r.json();
+                } else if (r.status === 401) {
+                    console.log('Ei käyttöoikeuksia! ' + r.status);
+                    return [];
+                } else {
+                    console.log('Palvelin virhe! ' + r.status);
+                    return [];
                 }
-            }
+            });
         };
         runEffect();
 
         return () => {
-            controller.abort();
         }
     }, [setState, query]);
 
