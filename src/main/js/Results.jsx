@@ -10,9 +10,12 @@ const Results = (props) => {
     const query = new URLSearchParams(props.location.search).get("q");
     const [state , setState] = useState();
     useEffect(() => {
+
         const runEffect = async () => {
             const data = await fetch(
-                "/palaute/api/palaute?q=" + query
+                "/palaute/api/palaute?q=" + query, {
+                    credentials: "same-origin"
+                }
             ).then(r => {
                 if(r.status === 200) {
                     return r.json();
