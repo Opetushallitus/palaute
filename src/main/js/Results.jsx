@@ -27,6 +27,7 @@ const Results = (props) => {
                     return [];
                 }
             });
+            setState({...state, data: data});
         };
         runEffect();
 
