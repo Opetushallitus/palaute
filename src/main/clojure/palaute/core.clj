@@ -129,7 +129,8 @@
    (api/GET
     "/palaute" {session :session}
     :query-params [{q :- s/Str nil}]
-    :return [Feedback]
+    :summary "Palautteet hakusanahaulla"
+    ;:return [Feedback]
     (audit-log/log {:new       {:q q}
                     :id        {:q q}
                     :session   session
