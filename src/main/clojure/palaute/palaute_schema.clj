@@ -23,7 +23,8 @@
     :feedback s/Str "Palautteen sisältö"
     :key s/Str "Avain joka yksilöi mitä palaute koskee"
     :created-at DateTime "Aikaleima jolloin palaute on onnettu"
-    :stars (s/pred #(<= 1 % 5)) "Arvostelu tähtien määrällä (1-5 tähteä)"
+    :stars (s/both s/Int (s/pred #(<= 1 % 5))) "Arvostelu tähtien määrällä (1-5 tähteä)"
+    ;:stars (s/pred #(<= 1 % 5)) "Arvostelu tähtien määrällä (1-5 tähteä)"
     :user-agent s/Str "Palautteen antajan selaimen käyttäjäagentti"
     :data (s/maybe s/Any) "Muuta palautteeseen liittyvää järjestelmäkohtaista metadataa"))
 
