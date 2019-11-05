@@ -130,8 +130,6 @@
     "/palaute" {session :session}
     :query-params [{q :- s/Str nil}]
     :summary "Palautteet hakusanahaulla"
-    ;Disabloitu väliaikaisesti.
-    ;:return [Feedback]
     (audit-log/log {:new       {:q q}
                     :id        {:q q}
                     :session   session
