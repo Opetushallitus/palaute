@@ -43,14 +43,7 @@
                                                                                 ;; Hostname will differentiate files in actual environments
                                                                                 (when (:hostname env) (str "_" (:hostname env))))
                                                                   :pattern :daily})
-                                                          :output-fn (fn [data] (force (:msg_ data))))
-                                       :stdout-appender (assoc (println-appender
-                                                                 {:stream :std-out})
-                                                          :output-fn (fn [data]
-                                                                       (json/generate-string
-                                                                         {:eventType "audit"
-                                                                          :timestamp (force (:timestamp_ data))
-                                                                          :event     (json/parse-string (force (:msg_ data)))})))}
+                                                          :output-fn (fn [data] (force (:msg_ data))))}
                            :timestamp-opts {:pattern  "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
                                             :timezone (TimeZone/getTimeZone "Europe/Helsinki")})
         logger           (proxy [Logger] [] (log [str]
