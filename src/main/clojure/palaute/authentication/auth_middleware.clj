@@ -46,6 +46,8 @@
 
 (def ^:private rules [{:pattern #".*/auth/.*"
                        :handler any-access}
+                      {:pattern #".*/health_check"
+                       :handler any-access}
                       {:pattern #".*/js/.*"
                        :handler any-access}
                       {:pattern #".*/images/.*"
