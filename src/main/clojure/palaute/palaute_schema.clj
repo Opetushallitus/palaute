@@ -20,7 +20,7 @@
 (s/defschema Feedback
   (describe
     "Palaute"
-    :feedback s/Str "Palautteen sisältö"
+    :feedback (s/maybe s/Str) "Palautteen sisältö"
     :key s/Str "Avain joka yksilöi mitä palaute koskee"
     :created-at DateTime "Aikaleima jolloin palaute on onnettu"
     :stars (s/both s/Int (s/pred #(<= 1 % 5))) "Arvostelu tähtien määrällä (1-5 tähteä)"
