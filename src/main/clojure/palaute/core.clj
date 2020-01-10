@@ -54,7 +54,8 @@
            org.joda.time.format.DateTimeFormat
            org.joda.time.format.ISODateTimeFormat
            org.joda.time.format.DateTimeFormatterBuilder
-           java.time.format.DateTimeFormatter)
+           java.time.format.DateTimeFormatter
+           (ua_parser Parser))
   (:gen-class))
 
 (sql/defqueries "sql/palaute.sql")
@@ -65,13 +66,24 @@
                  json-generator
                  (.print formatter (.withZone d zone-id)))))
 
+(defonce user-agent-parser (Parser.))
+
 (defn feedback->row [feedback]
   (let [joda->timestamp (fn [a]
-                            (assoc (vec a) 0 (.getMillis (first a))))]
+                            (assoc (vec a) 0 (.getMillis (first a))))
+        user-agent->agent-os-device (fn [a]
+                                        (let [c (.parse user-agent-parser (nth a 2))]
+                                        (assoc (vec a) 2
+                                               (str
+                                                 (.. c -userAgent -family)
+                                                 ", "
+                                                 (.. c -os -family)))
+                                        ))]
     (-> feedback
         (select-keys [:created_time :stars :user_agent :feedback])
         vals
-        joda->timestamp)))
+        joda->timestamp
+        user-agent->agent-os-device)))
 
 (defn- wrap-database-backed-session [handler]
   (ring-session/wrap-session handler

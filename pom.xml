@@ -219,6 +219,12 @@
             <artifactId>aws-java-sdk-sqs</artifactId>
             <version>1.11.536</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.ua-parser</groupId>
+            <artifactId>uap-java</artifactId>
+            <version>1.4.3</version>
+        </dependency>
+
     </dependencies>
     <build>
         <sourceDirectory>src/main/clojure</sourceDirectory>
