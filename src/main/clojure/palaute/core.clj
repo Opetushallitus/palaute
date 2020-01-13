@@ -77,7 +77,11 @@
                                                (str
                                                  (.. c -userAgent -family)
                                                  ", "
-                                                 (.. c -os -family)))
+                                                 (.. c -os -family)
+                                                 (when (not= (.. c -device family) "Other")
+                                                       (str
+                                                         ", "
+                                                         (.. c -device family)))))
                                         ))]
     (-> feedback
         (select-keys [:created_time :stars :user_agent :feedback])
