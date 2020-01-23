@@ -5,13 +5,55 @@ import {Table, Form, Label, Button, Icon, Rating} from 'semantic-ui-react';
 import Excel from './Excel';
 import * as moment from 'moment';
 import 'moment/locale/fi';
+import parser from 'ua-parser-js';
+
+const DataRows = ({data}) => {
+    return <React.Fragment>{(data || []).map((row, index) => {
+        const ua = row[2] && parser(row[2]) || {browser: {}, os: {}};
+        console.log(ua);
+        return <Table.Row key={index}>
+            <Table.Cell collapsing><Rating defaultRating={row[1]} maxRating={5} disabled/></Table.Cell>
+            <Table.Cell singleline>{row[3]}</Table.Cell>
+            <Table.Cell collapsing>{moment(row[0]).format('LLL')}</Table.Cell>
+            <Table.Cell>
+                {`${ua.browser.name} ${ua.browser.major}, ${ua.os.name} ${ua.os.version}`}
+                {ua.device && ua.device.type && `, ${ua.device.type} ${ua.device.model}`}
+            </Table.Cell>
+        </Table.Row>;
+    })}</React.Fragment>;
+};
+
+const ShowMore = ({moreFn}) => {
+    return <Table.Footer fullWidth>
+        <Table.Row>
+            <Table.HeaderCell colSpan='4' className={"stackable center aligned page grid"}>
+                <Button
+                    icon
+                    labelPosition='left'
+                    primary
+                    onClick={moreFn}>
+                    <Icon name='angle double down'/>Näytä lisää
+                </Button>
+            </Table.HeaderCell>
+        </Table.Row>
+    </Table.Footer>;
+};
+
+const Loader = () => {
+    return <Table.Row>
+        <Table.Cell collapsing colspan="4">
+            <div className="ui active centered inline loader"/>
+        </Table.Cell>
+    </Table.Row>;
+};
 
 const Results = (props) => {
     const query = new URLSearchParams(props.location.search).get("q");
-    const [state , setState] = useState();
+    const [state , setState] = useState({loading: false});
     useEffect(() => {
 
         const runEffect = async () => {
+            setState({...state, loading: true});
             const data = await fetch(
                 "/palaute/api/palaute?q=" + query, {
                     credentials: "same-origin"
@@ -27,7 +69,7 @@ const Results = (props) => {
                     return [];
                 }
             });
-            setState({...state, data: data});
+            setState({...state, data: data, loading: false});
         };
         runEffect();
 
@@ -43,7 +85,6 @@ const Results = (props) => {
         const [s,c] = (data || []).reduce(([sum, count], row) => [sum + row[1], ++count], [0,0]);
         return c !== 0 ? Math.round((s/c) * 100) / 100: 0;
     };
-
 
     const rowToExcel = (row) => {
         return [moment(row[0]).format('LLL'), row[1], row[2], row[3]];
@@ -73,29 +114,10 @@ const Results = (props) => {
                 </Table.Row>
             </Table.Header>
             <Table.Body>
-                {(data || []).map((row, index) => {
-                    return <Table.Row key={index}>
-                        <Table.Cell collapsing><Rating defaultRating={row[1]} maxRating={5} disabled/></Table.Cell>
-                        <Table.Cell singleline>{row[3]}</Table.Cell>
-                        <Table.Cell collapsing>{moment(row[0]).format('LLL')}</Table.Cell>
-                        <Table.Cell>{row[2]}</Table.Cell>
-                    </Table.Row>;
-                })}
+                {state.loading ? <Loader/> :<DataRows data={data}/>}
             </Table.Body>
-            {realData.length !== data.length ?
-                <Table.Footer fullWidth>
-                    <Table.Row>
-                        <Table.HeaderCell colSpan='4' className={"stackable center aligned page grid"}>
-                            <Button
-                                icon
-                                labelPosition='left'
-                                primary
-                                onClick={event => setState({...state, show: (show + 500)})}>
-                                <Icon name='angle double down'/>Näytä lisää
-                            </Button>
-                        </Table.HeaderCell>
-                    </Table.Row>
-                </Table.Footer> : null}
+            {!state.loading && realData.length !== data.length ?
+                <ShowMore moreFn={() => setState({...state, show: (show + 500)})}/> : null}
         </Table>
     );
 };
