@@ -16,7 +16,7 @@ const DataRows = ({data}) => {
             <Table.Cell collapsing>{moment(row[0]).format('LLL')}</Table.Cell>
             <Table.Cell>
                 {`${ua.browser.name} ${ua.browser.major}, ${ua.os.name} ${ua.os.version}`}
-                {ua.device && ua.device.type && `, ${ua.device.type} ${ua.device.model}`}
+                {ua.device && ua.device.model && `, ${ua.device.model}`}
             </Table.Cell>
         </Table.Row>;
     })}</React.Fragment>;
