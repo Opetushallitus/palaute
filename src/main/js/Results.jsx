@@ -10,7 +10,6 @@ import parser from 'ua-parser-js';
 const DataRows = ({data}) => {
     return <React.Fragment>{(data || []).map((row, index) => {
         const ua = row[2] && parser(row[2]) || {browser: {}, os: {}};
-        console.log(ua);
         return <Table.Row key={index}>
             <Table.Cell collapsing><Rating defaultRating={row[1]} maxRating={5} disabled/></Table.Cell>
             <Table.Cell singleline>{row[3]}</Table.Cell>
