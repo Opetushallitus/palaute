@@ -66,12 +66,9 @@
                  (.print formatter (.withZone d zone-id)))))
 
 (defn feedback->row [feedback]
-  (let [joda->timestamp (fn [a]
-                            (assoc (vec a) 0 (.getMillis (first a))))]
-    (-> feedback
-        (select-keys [:created_time :stars :user_agent :feedback])
-        vals
-        joda->timestamp)))
+  (-> feedback
+      (select-keys [:created_time :stars :user_agent :feedback])
+      vals))
 
 (defn- wrap-database-backed-session [handler]
   (ring-session/wrap-session handler

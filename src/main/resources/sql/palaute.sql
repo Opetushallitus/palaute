@@ -17,7 +17,7 @@ INSERT INTO feedback (
 );
 
 -- name: yesql-get-feedback
-SELECT created_time, stars, user_agent, feedback FROM feedback WHERE key = :key;
+SELECT extract(epoch from created_time), stars, user_agent, feedback FROM feedback WHERE key = :key;
 
 -- name: yesql-get-average
 SELECT avg(stars) as keskiarvo, count(stars) as lukumaara FROM feedback WHERE key = :key;
