@@ -11,7 +11,7 @@ INSERT INTO feedback (
 ) VALUES (
   :key,
   :feedback,
-  COALESCE(:service, 'ataru'),
+  :service,
   :created_at,
   :stars,
   :user_agent,

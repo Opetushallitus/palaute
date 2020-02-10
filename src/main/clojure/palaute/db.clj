@@ -2,6 +2,9 @@
   (:require [clojure.java.jdbc :as jdbc]
             [clojure.string :as string]
             [palaute.extensions]
+            [palaute.palaute-schema :refer [Feedback FeedbackEnforcer]]
+            [camel-snake-kebab.core :refer [->snake_case ->kebab-case-keyword ->camelCase]]
+            [camel-snake-kebab.extras :refer [transform-keys]]
             [hikari-cp.core :refer :all]))
 
 (defn- datasource-spec
@@ -17,6 +20,8 @@
           :pool-name          "db-pool"
           :adapter            "postgresql"}
          ds))
+
+(sql/defqueries "sql/palaute.sql")
 
 (defonce datasource (atom nil))
 
@@ -34,3 +39,9 @@
   `(jdbc/with-db-transaction [connection# {:datasource (get-datasource)}]
     (last (for [[query# params#] (partition 2 ~query-list)]
             (query# params# {:connection connection#})))))
+
+(defn store-feedback [feedback]
+  (exec yesql-insert-feedback<!
+    (->> feedback
+         (transform-keys ->snake_case)
+         #(update % :service (fn [service] (or service "ataru"))))))
