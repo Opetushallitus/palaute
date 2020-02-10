@@ -3,6 +3,7 @@
 INSERT INTO feedback (
   key,
   feedback,
+  service,
   created_time,
   stars,
   user_agent,
@@ -10,6 +11,7 @@ INSERT INTO feedback (
 ) VALUES (
   :key,
   :feedback,
+  :service,
   :created_at,
   :stars,
   :user_agent,

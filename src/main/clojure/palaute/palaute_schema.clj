@@ -2,6 +2,7 @@
   (:require
     [schema.core :as s]
     [ring.swagger.coerce :as coerce]
+    [schema-conformer.core :as scc]
     [schema.coerce :as c]
     [palaute.schema-util :refer [describe]])
   (:import java.util.Locale
@@ -22,6 +23,7 @@
     "Palaute"
     :feedback (s/maybe s/Str) "Palautteen sisältö"
     :key s/Str "Avain joka yksilöi mitä palaute koskee"
+    :service (scc/default s/Str "ataru") "Palvelun nimi jolle palaute on annettu"
     :created-at DateTime "Aikaleima jolloin palaute on onnettu"
     :stars (s/both s/Int (s/pred #(<= 1 % 5))) "Arvostelu tähtien määrällä (1-5 tähteä)"
     :user-agent s/Str "Palautteen antajan selaimen käyttäjäagentti"
