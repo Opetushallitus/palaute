@@ -1,10 +1,8 @@
 (ns palaute.sqs
   (:require [palaute.config :refer [config]]
             [yesql.core :as sql]
-            [palaute.db :refer [exec]]
+            [palaute.db :refer [store-feedback]]
             [palaute.palaute-schema :refer [Feedback FeedbackEnforcer]]
-            [camel-snake-kebab.core :refer [->snake_case ->kebab-case-keyword ->camelCase]]
-            [camel-snake-kebab.extras :refer [transform-keys]]
             [cheshire.core :as json]
             [taoensso.timbre :as log])
   (:import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
@@ -16,15 +14,10 @@
             Message
             DeleteMessageBatchRequestEntry]))
 
-(sql/defqueries "sql/palaute.sql")
-
 (defn save-message [message]
   (try
-    (let [feedback (->> (FeedbackEnforcer (json/parse-string (.getBody message) true))
-                        (transform-keys ->snake_case))]
-      (exec yesql-insert-feedback<!
-            (->> feedback
-                 (transform-keys ->snake_case))))
+    (let [feedback (FeedbackEnforcer (json/parse-string (.getBody message) true))]
+      (store-feedback feedback))
     (catch Exception e
       (log/error (str "Error saving feedback: " (.getMessage e))))))
 
@@ -60,12 +53,11 @@
     (.start
       (Thread.
         (fn []
-          (log/info "Starting to unload SQS Queue")
-          (with-open [credentials (DefaultAWSCredentialsProviderChain/getInstance)]
-            (let [amazon-sqs      (-> (AmazonSQSClientBuilder/standard)
-                                      (.withRegion (:region (:aws config)))
-                                      (.withCredentials credentials)
-                                      .build)]
+            (log/info "Starting to unload SQS Queue")
+            (let [amazon-sqs (-> (AmazonSQSClientBuilder/standard)
+                                 (.withRegion (:region (:aws config)))
+                                 (.withCredentials (DefaultAWSCredentialsProviderChain/getInstance))
+                                 .build)]
               (loop []
                 (try
                   (let [messages (batch-receive amazon-sqs)]
@@ -74,5 +66,5 @@
                     (batch-delete amazon-sqs messages))
                   (catch Exception e
                     (log/error (str "Error while listening SQS: " (.getMessage e)))))
-                (recur)))))))))
+                (recur))))))))
 

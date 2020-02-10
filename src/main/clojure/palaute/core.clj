@@ -11,6 +11,7 @@
             [palaute.palaute-schema :refer [Feedback formatter zone-id json-schema-coercion-matcher]]
             [compojure.route :refer [resources files not-found]]
             [compojure.api.sweet :as api]
+            [palaute.db :refer [exec]]
             [compojure.api.exception :as ex]
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.logger :refer [wrap-with-logger] :as middleware-logger]
@@ -19,13 +20,11 @@
             [taoensso.timbre :as log]
             [ring.util.request :refer [body-string]]
             [palaute.authentication.cas-client :refer [new-cas-client]]
-            [palaute.db :refer [exec]]
+            [palaute.db :refer [store-feedback]]
             [clj-time.format :as tf]
             [palaute.timbre-config :refer [configure-logging!]]
             [ring.util.http-response :refer [ok created]]
             [palaute.sqs :as sqs]
-            [camel-snake-kebab.core :refer [->snake_case ->kebab-case-keyword ->camelCase]]
-            [camel-snake-kebab.extras :refer [transform-keys]]
             [palaute.index :refer [index]]
             [palaute.log.audit-log :as audit-log]
             [schema.core :as s]
@@ -142,9 +141,7 @@
                     :id        {:key (:key feedback)}
                     :session   session
                     :operation audit-log/operation-new})
-    (exec yesql-insert-feedback<!
-          (->> feedback
-               (transform-keys ->snake_case)))
+    (store-feedback feedback)
     (created))))
 
 (defn- rewrite-url-for-environment
