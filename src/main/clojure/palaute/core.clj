@@ -11,6 +11,7 @@
             [palaute.palaute-schema :refer [Feedback formatter zone-id json-schema-coercion-matcher]]
             [compojure.route :refer [resources files not-found]]
             [compojure.api.sweet :as api]
+            [palaute.db :refer [exec]]
             [compojure.api.exception :as ex]
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.logger :refer [wrap-with-logger] :as middleware-logger]
