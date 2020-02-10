@@ -165,11 +165,6 @@
             <version>1.1.12</version>
         </dependency>
         <dependency>
-            <groupId>com.vodori</groupId>
-            <artifactId>schema-conformer</artifactId>
-            <version>0.1.2</version>
-        </dependency>
-        <dependency>
             <groupId>medley</groupId>
             <artifactId>medley</artifactId>
             <version>1.1.0</version>
