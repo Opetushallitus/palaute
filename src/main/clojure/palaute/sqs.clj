@@ -60,12 +60,11 @@
     (.start
       (Thread.
         (fn []
-          (log/info "Starting to unload SQS Queue")
-          (with-open [credentials (DefaultAWSCredentialsProviderChain/getInstance)]
-            (let [amazon-sqs      (-> (AmazonSQSClientBuilder/standard)
-                                      (.withRegion (:region (:aws config)))
-                                      (.withCredentials credentials)
-                                      .build)]
+            (log/info "Starting to unload SQS Queue")
+            (let [amazon-sqs (-> (AmazonSQSClientBuilder/standard)
+                                 (.withRegion (:region (:aws config)))
+                                 (.withCredentials (DefaultAWSCredentialsProviderChain/getInstance))
+                                 .build)]
               (loop []
                 (try
                   (let [messages (batch-receive amazon-sqs)]
@@ -74,5 +73,5 @@
                     (batch-delete amazon-sqs messages))
                   (catch Exception e
                     (log/error (str "Error while listening SQS: " (.getMessage e)))))
-                (recur)))))))))
+                (recur))))))))
 
