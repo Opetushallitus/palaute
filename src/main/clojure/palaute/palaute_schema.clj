@@ -44,4 +44,4 @@
       (time-matcher schema)
       (coerce/pattern-matcher schema)))
 
-(defonce FeedbackEnforcer (c/coercer! Feedback json-schema-coercion-matcher))
+(defonce FeedbackEnforcer (scc/conformer Feedback json-schema-coercion-matcher))
