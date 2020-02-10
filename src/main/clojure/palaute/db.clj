@@ -41,8 +41,11 @@
     (last (for [[query# params#] (partition 2 ~query-list)]
             (query# params# {:connection connection#})))))
 
+(defn default-service [feedback]
+  (update feedback :service (fn [service] (or service "ataru"))))
+
 (defn store-feedback [feedback]
   (exec yesql-insert-feedback<!
     (->> feedback
          (transform-keys ->snake_case)
-         #(update % :service (fn [service] (or service "ataru"))))))
+         (default-service))))
