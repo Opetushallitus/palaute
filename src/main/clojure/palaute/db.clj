@@ -2,6 +2,7 @@
   (:require [clojure.java.jdbc :as jdbc]
             [clojure.string :as string]
             [palaute.extensions]
+            [yesql.core :as sql]
             [palaute.palaute-schema :refer [Feedback FeedbackEnforcer]]
             [camel-snake-kebab.core :refer [->snake_case ->kebab-case-keyword ->camelCase]]
             [camel-snake-kebab.extras :refer [transform-keys]]
