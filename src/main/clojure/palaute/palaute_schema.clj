@@ -22,7 +22,7 @@
     "Palaute"
     :feedback (s/maybe s/Str) "Palautteen sisältö"
     :key s/Str "Avain joka yksilöi mitä palaute koskee"
-    :service (s/maybe s/Str) "Palvelun nimi jolle palaute on annettu"
+    (s/optional-key :service) s/Str "Palvelun nimi jolle palaute on annettu"
     :created-at DateTime "Aikaleima jolloin palaute on onnettu"
     :stars (s/both s/Int (s/pred #(<= 1 % 5))) "Arvostelu tähtien määrällä (1-5 tähteä)"
     :user-agent s/Str "Palautteen antajan selaimen käyttäjäagentti"
