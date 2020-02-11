@@ -133,7 +133,7 @@
     (ok
      (doall
       (map feedback->row
-           (exec yesql-get-feedback {:key q})))))
+           (exec yesql-get-feedback {:? [ (str q "%")]})))))
    (api/POST
     "/palaute" {session :session}
     :body [feedback Feedback]
