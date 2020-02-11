@@ -15,11 +15,13 @@
             DeleteMessageBatchRequestEntry]))
 
 (defn save-message [message]
+  (let [msg (atom nil)]
   (try
-    (let [feedback (FeedbackEnforcer (json/parse-string (.getBody message) true))]
+    (reset! msg (str (.getBody message)))
+    (let [feedback (FeedbackEnforcer (json/parse-string @msg true))]
       (store-feedback feedback))
     (catch Exception e
-      (log/error (str "Error saving feedback: " (.getMessage e))))))
+      (log/error (str "Error saving feedback: " (.getMessage e) ". Message: " @msg))))))
 
 (defn batch-receive [amazon-sqs]
   (->>
