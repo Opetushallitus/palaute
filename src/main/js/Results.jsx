@@ -55,7 +55,8 @@ const Results = (props) => {
             setState({...state, loading: true});
             const data = await fetch(
                 "/palaute/api/palaute?q=" + query, {
-                    credentials: "same-origin"
+                    credentials: "same-origin",
+                    headers: {"Caller-id": "1.2.246.562.10.00000000001.palaute.frontend"}
                 }
             ).then(r => {
                 if(r.status === 200) {

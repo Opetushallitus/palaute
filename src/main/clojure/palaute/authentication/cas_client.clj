@@ -9,8 +9,9 @@
 
 (defn new-cas-client []
   (new CasClient
-    (resolve-url :cas-client)
-    (.defaultClient org.http4s.client.blaze.package$/MODULE$)))
+       (resolve-url :cas-client)
+       (.defaultClient org.http4s.client.blaze.package$/MODULE$)
+       (get-in config [:caller-id :backend])))
 
 (defn new-client [service security-uri-suffix session-cookie-name]
   {:pre [(some? (:cas config))]}
@@ -29,7 +30,8 @@
       (assoc :body (json/generate-string body))))
 
 (defn- create-params [session-cookie-name cas-session-id body]
-  (cond-> {:headers          {"Cookie" (str session-cookie-name "=" @cas-session-id)}
+  (cond-> {:headers          {"Cookie" (str session-cookie-name "=" @cas-session-id)
+                              "Caller-id" (get-in config [:caller-id :backend])}
            :follow-redirects false}
     (some? body)
     (request-with-json-body body)))
