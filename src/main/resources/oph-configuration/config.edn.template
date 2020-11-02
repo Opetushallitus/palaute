@@ -12,5 +12,7 @@
  :urls {:virkailija-host "{{host_cas}}"
         :url-palaute     "{{host_ilb}}/palaute"}
  :public-config {:service_url "{{host_ilb}}/palaute/"}
+ :caller-id     {:backend "1.2.246.562.10.00000000001.palaute.backend"
+                 :frontend "1.2.246.562.10.00000000001.palaute.frontend"}
  :dev  false
  :log  {:base-path "/root/logs"}}

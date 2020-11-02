@@ -1,10 +1,11 @@
 (ns palaute.http-util
   (:require [org.httpkit.client :as http]
+            [palaute.config :refer [config]]
             [taoensso.timbre :as log]))
 
 (defn do-request
   [{:keys [url method] :as opts}]
-  (let [opts        (update opts :headers merge {"Caller-Id" "palaute"})
+  (let [opts        (update opts :headers merge {"Caller-Id" (get-in config [:caller-id :backend])})
         method-name (clojure.string/upper-case (name method))
         start       (System/currentTimeMillis)
         response    @(http/request opts)
