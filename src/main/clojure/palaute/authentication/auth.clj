@@ -19,7 +19,7 @@
   (fn []
     (when ticket
       [(.run
-         (.validateServiceTicket cas-client (resolve-url :palaute.login-success) ticket))
+         (.validateServiceTicketWithVirkailijaUsername cas-client (resolve-url :palaute.login-success) ticket))
        ticket])))
 
 (defn login [login-provider
