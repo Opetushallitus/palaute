@@ -34,7 +34,7 @@
     "react-router-dom": "^5.1.2",
     "semantic-ui-css": "^2.4.1",
     "semantic-ui-react": "^0.88.1",
-    "ua-parser-js": "^0.7.21",
+    "ua-parser-js": "^0.7.24",
     "xlsx": "^0.15.1"
   }
 }
