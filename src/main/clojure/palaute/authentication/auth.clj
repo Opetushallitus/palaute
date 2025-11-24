@@ -1,16 +1,11 @@
 (ns palaute.authentication.auth
   (:require [palaute.url-helper :refer [resolve-url]]
-            [palaute.db :as db]
             [palaute.authentication.cas-store :as cas-store]
-            [palaute.authentication.kayttooikeus-client :refer [get-kayttooikeudet]]
-            [environ.core :refer [env]]
-            [medley.core :refer [map-kv]]
-            [palaute.authentication.user-rights :as rights]
             [ring.util.http-response :refer [ok]]
             [ring.util.response :as resp]
             [taoensso.timbre :as log]
-            [yesql.core :as sql])
-  (:import (fi.vm.sade.utils.cas CasLogout)))
+            [clojure.string :as s])
+  (:import [fi.vm.sade.javautils.nio.cas CasLogout]))
 
 (defn- redirect-to-logged-out-page []
   (resp/redirect (resolve-url :cas.login)))
@@ -18,31 +13,55 @@
 (defn cas-login [cas-client ticket]
   (fn []
     (when ticket
-      [(.run
-         (.validateServiceTicketWithVirkailijaUsername cas-client (resolve-url :palaute.login-success) ticket))
+      [(.validateServiceTicketWithVirkailijaUserDetailsBlocking
+         cas-client
+         (resolve-url :palaute.login-success)
+         ticket)
        ticket])))
+
+(defn- role-starts-with-palaute-read?
+  [role]
+  (s/starts-with? role "ROLE_APP_PALAUTE_PALAUTE_READ_"))
+
+(defn- role-starts-with-palaute-create?
+  [role]
+  (s/starts-with? role "ROLE_APP_PALAUTE_PALAUTE_CREATE_"))
+
+(defn parse-organization-oids
+  [roles]
+  (->> roles
+       (filter #(or (role-starts-with-palaute-read? %)
+                    (role-starts-with-palaute-create? %)))
+       (map #(last (s/split % #"_")))
+       (filter #(re-matches #"1\.2\.246\.562\.[0-9]+\.[0-9]+" %))
+       set))
+
+(defn parse-palaute-rights
+  [roles]
+  (cond-> #{}
+    (role-starts-with-palaute-create? (conj :create))
+    (role-starts-with-palaute-read? (conj :read))))
 
 (defn login [login-provider
              redirect-url
              session]
   (try
-    (if-let [[username ticket] (login-provider)]
+    (if-let [[userdetails ticket] (login-provider)]
       (do
         (cas-store/login ticket)
-        (let [virkailija                (get-kayttooikeudet username)
-              right-organization-oids   (rights/virkailija->right-organization-oids virkailija rights/right-names)
-              organization-oids         (->> (-> virkailija :organisaatiot)
-                                             (map :organisaatioOid)
-                                             (set))
-              oph-organization          "1.2.246.562.10.00000000001"
-              oph-organization-member?  (contains? organization-oids oph-organization)]
+        (let [username                 (.getUser userdetails)
+              roles                    (.getRoles userdetails)
+              organization-oids        (parse-organization-oids roles)
+              rights                   (parse-palaute-rights roles)
+              oph-organization         "1.2.246.562.10.00000000001"
+              oph-organization-member? (contains? organization-oids oph-organization)]
           (log/info "user" username "logged in")
           (-> (resp/redirect redirect-url)
               (assoc :session
-                     {:identity {:oid        (:oidHenkilo virkailija)
+                     {:identity {:oid        (.getHenkiloOid userdetails)
                                  :username   username
                                  :ticket     ticket
-                                 :rights     right-organization-oids
+                                 :rights     rights
                                  :superuser  oph-organization-member?}}))))
       (redirect-to-logged-out-page))
     (catch Exception e
@@ -57,7 +76,8 @@
 
 (defn cas-initiated-logout [logout-request]
   (log/info "cas-initiated logout")
-  (let [ticket (CasLogout/parseTicketFromLogoutRequest logout-request)]
+  (let [cas-logout (CasLogout.)
+        ticket (.parseTicketFromLogoutRequest cas-logout logout-request)]
     (log/info "logging out ticket" ticket)
     (if (.isEmpty ticket)
       (log/error "Could not parse ticket from CAS request" logout-request)
