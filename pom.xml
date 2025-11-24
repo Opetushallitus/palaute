@@ -14,6 +14,7 @@
         <npm.version>8.15.0</npm.version>
         <frontend-maven-plugin.version>1.8.0</frontend-maven-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <aws.java.sdk.version>2.39.2</aws.java.sdk.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -21,6 +22,13 @@
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-log4j12</artifactId>
                 <version>1.7.36</version>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>bom</artifactId>
+                <version>${aws.java.sdk.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -224,9 +232,8 @@
             <version>2.4.0-alpha4</version>
         </dependency>
         <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-sqs</artifactId>
-            <version>1.11.536</version>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>sqs</artifactId>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
