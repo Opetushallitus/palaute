@@ -24,30 +24,29 @@
                 <version>1.7.36</version>
             </dependency>
             <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>1.7.36</version>
+            </dependency>
+            <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>bom</artifactId>
                 <version>${aws.java.sdk.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+                <groupId>onelog</groupId>
+                <artifactId>onelog</artifactId>
+                <version>0.5.0</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <dependencies>
         <dependency>
-            <groupId>onelog</groupId>
-            <artifactId>onelog</artifactId>
-            <version>0.5.0</version>
-        </dependency>
-        <dependency>
             <groupId>ring.middleware.logger</groupId>
             <artifactId>ring.middleware.logger</artifactId>
             <version>0.5.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>onelog</groupId>
-                    <artifactId>onelog</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.clojure</groupId>
@@ -57,7 +56,7 @@
         <dependency>
             <groupId>fi.vm.sade</groupId>
             <artifactId>auditlogger</artifactId>
-            <version>8.3.0-SNAPSHOT</version>
+            <version>8.3.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.flatland</groupId>
@@ -72,7 +71,37 @@
         <dependency>
             <groupId>com.fzakaria</groupId>
             <artifactId>slf4j-timbre</artifactId>
-            <version>0.3.14</version>
+            <version>0.4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>log4j-over-slf4j</artifactId>
+            <version>1.7.36</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jul-to-slf4j</artifactId>
+            <version>1.7.36</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>1.7.36</version>
+        </dependency>
+        <dependency>
+            <groupId>oph</groupId>
+            <artifactId>clj-access-logging</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>oph</groupId>
+            <artifactId>clj-stdout-access-logging</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>oph</groupId>
+            <artifactId>clj-timbre-access-logging</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.clojure</groupId>
@@ -110,6 +139,12 @@
             <groupId>opiskelijavalinnat-utils</groupId>
             <artifactId>java-cas</artifactId>
             <version>2.0.0-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.clojure</groupId>
@@ -159,7 +194,12 @@
         <dependency>
             <groupId>com.taoensso</groupId>
             <artifactId>timbre</artifactId>
-            <version>4.10.0</version>
+            <version>6.6.1</version>
+        </dependency>
+        <dependency>
+            <groupId>timbre-ns-pattern-level</groupId>
+            <artifactId>timbre-ns-pattern-level</artifactId>
+            <version>0.1.2</version>
         </dependency>
         <dependency>
             <groupId>camel-snake-kebab</groupId>

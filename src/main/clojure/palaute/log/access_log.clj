@@ -5,8 +5,7 @@
             [clojure.string :as s]
             [environ.core :refer [env]]
             [taoensso.timbre :as timbre]
-            [taoensso.timbre.appenders.core :refer [println-appender]]
-            [taoensso.timbre.appenders.3rd-party.rolling :refer [rolling-appender]])
+            [taoensso.timbre.appenders.community.rolling :refer [rolling-appender]])
   (:import java.util.TimeZone))
 
 (defonce service-name "palaute")
@@ -19,14 +18,7 @@
                                                                                 ;; Hostname will differentiate files in actual environments
                                                                                 (when (:hostname env) (str "_" (:hostname env))))
                                                                   :pattern :daily})
-                                          :output-fn (fn [{:keys [msg_]}] (force msg_)))
-                       :stdout-appender (assoc (println-appender
-                                                 {:stream :std-out})
-                                          :output-fn (fn [data]
-                                                       (json/generate-string
-                                                         {:eventType "access"
-                                                          :timestamp (force (:timestamp_ data))
-                                                          :event     (dissoc (json/parse-string (force (:msg_ data))) :timestamp)})))}
+                                          :output-fn (fn [{:keys [msg_]}] (force msg_)))}
            :timestamp-opts {:pattern  "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
                             :timezone (TimeZone/getTimeZone "Europe/Helsinki")}))
 

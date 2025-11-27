@@ -1,7 +1,6 @@
 (ns palaute.timbre-config
   (:require [taoensso.timbre :as timbre]
-            [taoensso.timbre.appenders.core :refer [println-appender]]
-            [taoensso.timbre.appenders.3rd-party.rolling :refer [rolling-appender]]
+            [taoensso.timbre.appenders.community.rolling :refer [rolling-appender]]
             [environ.core :refer [env]]
             [palaute.config :refer [config]])
   (:import [java.util TimeZone]))
@@ -10,9 +9,7 @@
   (timbre/merge-config!
    {:level          :info
     :appenders
-    {:println
-     (println-appender {:stream :std-out})
-     :file-appender
+    {:file-appender
      (rolling-appender
       {:path    (str (-> config :log :base-path)
                      "/app_palaute"
