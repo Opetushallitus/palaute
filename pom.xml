@@ -10,9 +10,9 @@
     <properties>
         <java.version>11</java.version>
         <frontend-src-dir>${project.basedir}/src/main/js</frontend-src-dir>
-        <node.version>v16.17.0</node.version>
-        <npm.version>8.15.0</npm.version>
-        <frontend-maven-plugin.version>1.8.0</frontend-maven-plugin.version>
+        <node.version>v24.11.1</node.version>
+        <pnpm.version>v10.22.0</pnpm.version>
+        <frontend-maven-plugin.version>1.15.0</frontend-maven-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <aws.java.sdk.version>2.39.2</aws.java.sdk.version>
     </properties>
@@ -287,26 +287,26 @@
                     <nodeVersion>${node.version}</nodeVersion>
                     <workingDirectory>src/main/js</workingDirectory>
                     <installDirectory>target</installDirectory>
-                    <npmVersion>${npm.version}</npmVersion>
+                    <pnpmVersion>${pnpm.version}</pnpmVersion>
                 </configuration>
 
                 <executions>
                     <execution>
-                        <id>Install node and npm locally to the project</id>
+                        <id>Install node and pnpm locally to the project</id>
                         <goals>
-                            <goal>install-node-and-npm</goal>
+                            <goal>install-node-and-pnpm</goal>
                         </goals>
                     </execution>
                     <execution>
-                        <id>npm install</id>
+                        <id>pnpm install</id>
                         <goals>
-                            <goal>npm</goal>
+                            <goal>pnpm</goal>
                         </goals>
                     </execution>
                     <execution>
                         <id>Build frontend</id>
                         <goals>
-                            <goal>npm</goal>
+                            <goal>pnpm</goal>
                         </goals>
                         <configuration>
                             <arguments>run build</arguments>

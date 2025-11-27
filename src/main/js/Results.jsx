@@ -1,6 +1,6 @@
 import 'semantic-ui-css/semantic.min.css';
 import React, {useState, useEffect} from "react";
-import {withRouter} from "react-router";
+import {withRouter} from "react-router-dom";
 import {Table, Form, Label, Button, Icon, Rating} from 'semantic-ui-react';
 import Excel from './Excel';
 import * as moment from 'moment';
