@@ -47,22 +47,28 @@
              session]
   (try
     (if-let [[userdetails ticket] (login-provider)]
-      (do
-        (cas-store/login ticket)
-        (let [username                 (.getUser userdetails)
-              roles                    (.getRoles userdetails)
-              organization-oids        (parse-organization-oids roles)
-              rights                   (parse-palaute-rights roles)
-              oph-organization         "1.2.246.562.10.00000000001"
-              oph-organization-member? (contains? organization-oids oph-organization)]
-          (log/info "user" username "logged in")
-          (-> (resp/redirect redirect-url)
-              (assoc :session
-                     {:identity {:oid        (.getHenkiloOid userdetails)
-                                 :username   username
-                                 :ticket     ticket
-                                 :rights     rights
-                                 :superuser  oph-organization-member?}}))))
+      (let [username                 (.getUser userdetails)
+            roles                    (.getRoles userdetails)
+            organization-oids        (parse-organization-oids roles)
+            rights                   (parse-palaute-rights roles)
+            oph-organization         "1.2.246.562.10.00000000001"
+            oph-organization-member? (contains? organization-oids oph-organization)]
+        (if (seq rights)
+          (do
+            (cas-store/login ticket)
+            (log/info "user" username "logged in")
+            (-> (resp/redirect redirect-url)
+                (assoc :session
+                       {:identity {:oid        (.getHenkiloOid userdetails)
+                                   :username   username
+                                   :ticket     ticket
+                                   :rights     rights
+                                   :superuser  oph-organization-member?}})))
+          (do
+            (log/info "user" username "has no appropriate rights")
+            (-> (resp/response "Ei käyttöoikeuksia palveluun")
+                (resp/header "Content-Type" "text/plain; charset=utf-8")
+                (resp/status 403)))))
       (redirect-to-logged-out-page))
     (catch Exception e
       (log/error (str "Error in login ticket handling" (.getMessage e)))
