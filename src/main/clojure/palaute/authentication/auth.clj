@@ -53,6 +53,7 @@
             rights                   (parse-palaute-rights roles)
             oph-organization         "1.2.246.562.10.00000000001"
             oph-organization-member? (contains? organization-oids oph-organization)]
+        (log/info "!!! debug:" roles "rights:" rights "oids:" organization-oids)
         (if (seq rights)
           (do
             (cas-store/login ticket)
