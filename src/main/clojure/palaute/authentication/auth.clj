@@ -39,8 +39,8 @@
 (defn parse-palaute-rights
   [roles]
   (cond-> #{}
-    (role-starts-with-palaute-create? (conj :create))
-    (role-starts-with-palaute-read? (conj :read))))
+    (some role-starts-with-palaute-create? roles) (conj :create)
+    (some role-starts-with-palaute-read? roles) (conj :read)))
 
 (defn login [login-provider
              redirect-url
