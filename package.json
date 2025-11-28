@@ -36,5 +36,11 @@
     "semantic-ui-react": "^0.88.1",
     "ua-parser-js": "^0.7.21",
     "xlsx": "^0.15.1"
-  }
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm"
+    }
+  },
+  "packageManager": "pnpm@10.22.0"
 }
