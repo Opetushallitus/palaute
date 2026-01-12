@@ -224,7 +224,7 @@
         <dependency>
             <groupId>org.clojure</groupId>
             <artifactId>core.memoize</artifactId>
-            <version>0.7.2</version>
+            <version>1.2.273</version>
         </dependency>
         <dependency>
             <groupId>http-kit</groupId>
