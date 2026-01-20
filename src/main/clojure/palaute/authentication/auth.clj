@@ -5,12 +5,12 @@
             [ring.util.response :as resp]
             [taoensso.timbre :as log]
             [clojure.string :as s])
-  (:import [fi.vm.sade.javautils.nio.cas CasLogout]))
+  (:import [fi.vm.sade.javautils.nio.cas CasClient CasLogout UserDetails]))
 
 (defn- redirect-to-logged-out-page []
   (resp/redirect (resolve-url :cas.login)))
 
-(defn cas-login [cas-client ticket]
+(defn cas-login ^UserDetails [^CasClient cas-client ticket]
   (fn []
     (when ticket
       [(.validateServiceTicketWithVirkailijaUserDetailsBlocking

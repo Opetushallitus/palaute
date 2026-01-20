@@ -1,27 +1,19 @@
 (ns palaute.core
   (:require [ring.adapter.jetty :refer [run-jetty]]
-            [compojure.core :refer [GET POST defroutes routes context]]
-            [compojure.handler :refer [site]]
-            [ring.swagger.coerce :as coerce]
-            [compojure.api.middleware
-             :refer
-             [api-middleware-defaults default-coercion-matchers]]
+            [compojure.api.middleware :refer [default-coercion-matchers]]
             [medley.core :refer [map-kv]]
             [org.httpkit.client :as http]
             [palaute.palaute-schema :refer [Feedback formatter zone-id json-schema-coercion-matcher]]
-            [compojure.route :refer [resources files not-found]]
+            [compojure.route :refer [resources]]
             [compojure.api.sweet :as api]
             [palaute.db :refer [exec]]
             [compojure.api.exception :as ex]
             [ring.middleware.reload :refer [wrap-reload]]
-            [ring.middleware.logger :refer [wrap-with-logger] :as middleware-logger]
-            [ring.util.response :refer [response]]
+            [ring.middleware.logger :refer [wrap-with-logger]]
             [cheshire.generate :refer [add-encoder]]
             [taoensso.timbre :as log]
-            [ring.util.request :refer [body-string]]
             [palaute.authentication.cas-client :refer [new-cas-client]]
             [palaute.db :refer [store-feedback]]
-            [clj-time.format :as tf]
             [palaute.timbre-config :refer [configure-logging!]]
             [ring.util.http-response :refer [ok created]]
             [palaute.sqs :as sqs]
@@ -30,30 +22,18 @@
             [schema.core :as s]
             [clojure.string :as string]
             [ring.middleware.session :as ring-session]
-            [schema.coerce :as c]
-            [clj-time.coerce :as tc]
             [environ.core :refer [env]]
             [palaute.authentication.session-store :refer [create-store]]
             [palaute.log.access-log :as access-log]
             [palaute.config :refer [config]]
             [palaute.flyway :refer [migrate]]
-            [ring.middleware.resource :refer [wrap-resource]]
-            [ring.middleware.content-type :refer [wrap-content-type]]
             [yesql.core :as sql]
             [palaute.authentication.auth
              :refer
              [cas-login login cas-initiated-logout logout]]
-            [palaute.authentication.auth-middleware :refer [with-authentication]]
-            [ring.middleware.not-modified :refer [wrap-not-modified]])
-  (:import java.util.Locale
-           java.time.ZonedDateTime
-           org.joda.time.DateTime
-           java.util.Date
-           org.joda.time.DateTimeZone
-           org.joda.time.format.DateTimeFormat
-           org.joda.time.format.ISODateTimeFormat
-           org.joda.time.format.DateTimeFormatterBuilder
-           java.time.format.DateTimeFormatter)
+            [palaute.authentication.auth-middleware :refer [with-authentication]])
+  (:import org.joda.time.DateTime
+           (fi.vm.sade.javautils.nio.cas UserDetails))
   (:gen-class))
 
 (sql/defqueries "sql/palaute.sql")
@@ -150,11 +130,13 @@
     url-from-session
     (string/replace url-from-session #"^http://" "https://")))
 
-(defn- fake-login-provider [ticket]
+(defn- fake-login-provider ^UserDetails [_]
   (fn []
     (let [username      "1.2.246.562.11.11111111111"
-          unique-ticket (str (System/currentTimeMillis) "-" (rand-int (Integer/MAX_VALUE)))]
-      [username unique-ticket])))
+          unique-ticket (str (System/currentTimeMillis) "-" (rand-int (Integer/MAX_VALUE)))
+          rights        #{"ROLE_APP_PALAUTE_PALAUTE_READ_1.2.246.562.10.00000000001", "ROLE_APP_PALAUTE_PALAUTE_CREATE_1.2.246.562.10.00000000001"}
+          user-details  (UserDetails. username username "virkailija" "" rights)]
+      [user-details unique-ticket])))
 
 (defonce cas-client (new-cas-client))
 

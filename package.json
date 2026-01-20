@@ -35,7 +35,7 @@
     "semantic-ui-css": "^2.4.1",
     "semantic-ui-react": "^0.88.1",
     "ua-parser-js": "^0.7.21",
-    "xlsx": "^0.15.1"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devEngines": {
     "packageManager": {
