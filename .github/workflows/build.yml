@@ -27,17 +27,17 @@ jobs:
           java-version: '21'
           distribution: 'corretto'
 
-      - uses: szenius/set-timezone@v1.0
+      - uses: szenius/set-timezone@ce9c440bc3af4f51b28d7ef7e5c47ee8f26c8dcb # v1.2
         with:
           timezoneLinux: "Europe/Helsinki"
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 10.22.0
+          version: 10.34.5
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 24.11.1
+          node-version: 24.20.0
           cache: 'pnpm'
           cache-dependency-path: pnpm-lock.yaml
 
